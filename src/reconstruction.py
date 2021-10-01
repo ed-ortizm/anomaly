@@ -10,7 +10,7 @@ class ReconstructionAnomalyScore:
     def __init__(self,):
         pass
     ###########################################################################
-    def _update_dimensions(self, x: "np.array")-->"numpy array":
+    def _update_dimensions(self, x: "np.array")->"numpy array":
 
         if x.ndim == 1:
             x = x[np.newaxis, ...]
@@ -20,7 +20,7 @@ class ReconstructionAnomalyScore:
     def _get_largest_pixels_error_ids(self,
         flux_wise_error: "numpy array",
         percentage: "int",
-        )-->"numpy array":
+        )->"numpy array":
 
         number_fluxes = flux_wise_error.shape[1]
         number_anomalous_fluxes = int(0.01*percentage*number_fluxes)
@@ -36,7 +36,7 @@ class ReconstructionAnomalyScore:
     def _get_anomaly_score(self,
         flux_wise_error: "numpy_array",
         percentage: "int",
-        )-->"numpy array":
+        )->"numpy array":
 
         largest_pixels_error_ids = self._get_largest_pixels_error_ids(
             flux_wise_error,
@@ -55,7 +55,7 @@ class ReconstructionAnomalyScore:
         observation: "numpy array",
         reconstruction: "numpy array",
         percentage: "int",
-        )--> "numpy array":
+        )-> "numpy array":
 
         """
         PARAMETERS
@@ -80,7 +80,7 @@ class ReconstructionAnomalyScore:
         reconstruction: "numpy array",
         percentage: "int",
         epsilon: "float" = 1e-3,
-        )--> "numpy array":
+        )-> "numpy array":
 
         flux_wise_error = np.square(reconstruction - observation)
         flux_wise_error *= 1./np.square(O + epsilon)
