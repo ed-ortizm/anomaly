@@ -14,11 +14,19 @@ class ReconstructionAnomalyScore:
         self.model = model
         self.p = p
         self.epsilon = epsilon
+
+    ###########################################################################
+    def _update_dimensions(self, x: "np.array"):
+
+        if x.ndim == 1:
+            x = x[np.newaxis, ...]
+
+        return x
     ###########################################################################
     def _get_largest_pixels_error_ids(self,
         flux_wise_error: "numpy array",
         percentage: "int",
-        ):
+        )-->"numpy array":
 
         number_fluxes = flux_wise_error.shape[1]
         number_anomalous_fluxes = int(0.01*percentage*number_fluxes)
@@ -49,11 +57,8 @@ class ReconstructionAnomalyScore:
 
         """
 
-        # if image:
-            # O, R = O[:, 0, :, 0], R[:, 0, :, 0]
-
         flux_wise_error = np.square(reconstruction - observation)
-        # dimensions
+        flux_wise_error = self._update_dimensions(flux_wise_error)
 
         largest_pixels_error_ids = self._get_largest_pixels_error_ids(
             flux_wise_error,
@@ -67,16 +72,7 @@ class ReconstructionAnomalyScore:
             _anomaly_score[n, :] = flux_wise_error[n, idx]
 
         anomaly_score = _anomaly_score.sum(axis=1)
-        # if image:
-        #
-        #     similarity =  o_score.max() - o_score
-        #
-        #     o_similarity = np.empty((o_score.size, 2))
-        #     o_similarity[:, 0] = o_score[:]
-        #     o_similarity[:, 1] = similarity[:]
-        #
-        #     return o_similarity
-        #
+
         return anomaly_score
     ############################################################################
     def _mse_relative(self, O, R, percentage, image):
