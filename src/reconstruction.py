@@ -16,7 +16,7 @@ class ReconstructionAnomalyScore:
         self.epsilon = epsilon
 
     ###########################################################################
-    def _update_dimensions(self, x: "np.array"):
+    def _update_dimensions(self, x: "np.array")-->"numpy array":
 
         if x.ndim == 1:
             x = x[np.newaxis, ...]
@@ -39,11 +39,21 @@ class ReconstructionAnomalyScore:
 
         return larger_pixels_error_ids
     ###########################################################################
+    def _get_anomaly_score(self,
+        largest_reconstruction_ids: "numpy_array")-->"numpy array":
+
+        anomaly_score = np.empty(largest_pixels_error_ids.shape)
+
+        for n, idx in enumerate(largest_reconstruction_ids):
+
+            anomaly_score[n, :] = flux_wise_error[n, idx]
+
+        return anomaly_score.sum(axis=1)
+    ###########################################################################
     def mse(self,
         observation: "numpy array",
         reconstruction: "numpy array",
         percentage: "int",
-        image: "boolean",
         ):
 
         """
@@ -65,20 +75,11 @@ class ReconstructionAnomalyScore:
             percentage,
         )
 
-        _anomaly_score = np.empty(largest_pixels_error_ids.shape)
-
-        for n, idx in enumerate(largest_reconstruction_ids):
-
-            _anomaly_score[n, :] = flux_wise_error[n, idx]
-
-        anomaly_score = _anomaly_score.sum(axis=1)
+        anomaly_score = self._get_anomaly_score(largest_reconstruction_ids)
 
         return anomaly_score
     ############################################################################
     def _mse_relative(self, O, R, percentage, image):
-
-        if image:
-            O, R = O[:, 0, :, 0], R[:, 0, :, 0]
 
         reconstruction = np.square( (R - O)/(O + self.epsilon) )
 
@@ -110,9 +111,6 @@ class ReconstructionAnomalyScore:
     ############################################################################
     ############################################################################
     def _mad(self, O, R, percentage, image):
-
-        if image:
-            O, R = O[:, 0, :, 0], R[:, 0, :, 0]
 
         reconstruction = np.abs(R - O)
 
