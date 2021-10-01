@@ -32,7 +32,7 @@ class ReconstructionAnomalyScore:
             flux_wise_error, -1 * number_anomalous_fluxes, axis=1
         )[:, -1 * number_anomalous_fluxes :]
 
-        return larger_pixels_error_ids
+        return largest_pixels_error_ids
 
     ###########################################################################
     def _get_anomaly_score(
@@ -45,7 +45,7 @@ class ReconstructionAnomalyScore:
 
         anomaly_score = np.empty(largest_pixels_error_ids.shape)
 
-        for n, idx in enumerate(largest_reconstruction_ids):
+        for n, idx in enumerate(largest_pixels_error_ids):
 
             anomaly_score[n, :] = flux_wise_error[n, idx]
 
