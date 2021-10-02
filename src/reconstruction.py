@@ -7,8 +7,23 @@ class ReconstructionAnomalyScore:
     tensorflow.keras
     """
     ############################################################################
-    def __init__(self,):
-        pass
+    def __init__(self,
+        model: "tf.keras.model"
+        ):
+        """
+        INPUTS
+            model: trained generative model with reconstruct method
+        OUTPUT
+            object
+        """
+        self.model = model
+    ###########################################################################
+    def _reconstruct(self,
+        observation: "numpy array",
+        ):
+
+        return self.model.reconstruct(observation)
+
     ###########################################################################
     def _update_dimensions(self, x: "np.array")->"numpy array":
 
@@ -17,35 +32,56 @@ class ReconstructionAnomalyScore:
 
         return x
     ###########################################################################
-    def _get_largest_pixels_error_ids(self,
+    def _get_reconstruction_error_ids(self,
         flux_wise_error: "numpy array",
         percentage: "int",
         )->"numpy array":
 
+        """
+        PARAMETERS
+            flux_wise_error: array with reconstruction errors
+                flux by flux
+            percentage: percentage of fluxes with the highest
+                reconstruction error to consider to compute
+                the anomaly score
+        OUTPUT
+            anomaly score of the input observation
+        """
+
         number_fluxes = flux_wise_error.shape[1]
         number_anomalous_fluxes = int(0.01*percentage*number_fluxes)
 
-        largest_pixels_error_ids = np.argpartition(
+        largest_reconstruction_error_ids = np.argpartition(
             flux_wise_error,
             -1 * number_anomalous_fluxes,
-            axis=1
-        )[:, -1 * number_anomalous_fluxes:]
+            axis=1)[:, -1 * number_anomalous_fluxes:]
 
-        return larger_pixels_error_ids
+        return largest_reconstruction_error_ids
     ###########################################################################
     def _get_anomaly_score(self,
         flux_wise_error: "numpy_array",
         percentage: "int",
         )->"numpy array":
 
-        largest_pixels_error_ids = self._get_largest_pixels_error_ids(
+        """
+        PARAMETERS
+            flux_wise_error: array with reconstruction errors
+                flux by flux
+            percentage: percentage of fluxes with the highest
+                reconstruction error to consider to compute
+                the anomaly score
+        OUTPUT
+            anomaly score of the input observation
+        """
+
+        reconstruction_error_ids = self._get_reconstruction_error_ids(
             flux_wise_error,
             percentage,
         )
 
-        anomaly_score = np.empty(largest_pixels_error_ids.shape)
+        anomaly_score = np.empty(reconstruction_error_ids.shape)
 
-        for n, idx in enumerate(largest_reconstruction_ids):
+        for n, idx in enumerate(reconstruction_error_ids):
 
             anomaly_score[n, :] = flux_wise_error[n, idx]
 
@@ -53,21 +89,20 @@ class ReconstructionAnomalyScore:
     ###########################################################################
     def mse(self,
         observation: "numpy array",
-        reconstruction: "numpy array",
         percentage: "int",
         )-> "numpy array":
 
         """
         PARAMETERS
-            observation:
-            reconstruction:
-            percentage:
-            image:
-
+            observation: array with the origin of fluxes
+            percentage: percentage of fluxes with the highest
+                reconstruction error to consider to compute
+                the anomaly score
         OUTPUT
-
+            anomaly score of the input observation
         """
 
+        reconstruction = self._reconstruct(observation)
         flux_wise_error = np.square(reconstruction - observation)
         flux_wise_error = self._update_dimensions(flux_wise_error)
 
@@ -77,11 +112,21 @@ class ReconstructionAnomalyScore:
     ############################################################################
     def mse_relative(self,
         observation: "numpy array",
-        reconstruction: "numpy array",
         percentage: "int",
         epsilon: "float" = 1e-3,
         )-> "numpy array":
+        """
+        PARAMETERS
+            observation: array with the origin of fluxes
+            percentage: percentage of fluxes with the highest
+                reconstruction error to consider to compute
+                the anomaly score
+            epsilon: float value to avoid division by zero
+        OUTPUT
+            anomaly score of the input observation
+        """
 
+        reconstruction = self._reconstruct(observation)
         flux_wise_error = np.square(reconstruction - observation)
         flux_wise_error *= 1./np.square(O + epsilon)
 
