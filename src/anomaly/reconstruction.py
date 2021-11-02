@@ -9,9 +9,7 @@ class ReconstructionAnomalyScore:
     """
 
     ###########################################################################
-    def __init__(self,
-        model: "tf.keras.model"
-        ):
+    def __init__(self, model: "tf.keras.model"):
         """
         INPUTS
             model: trained generative model with reconstruct method
@@ -19,12 +17,12 @@ class ReconstructionAnomalyScore:
             object
         """
         self.model = model
+
     ###########################################################################
-    def _reconstruct(self,
-        observation: "numpy array",
-        ):
+    def _reconstruct(self, observation: "numpy array"):
 
         return self.model.reconstruct(observation)
+
     ###########################################################################
     def _update_dimensions(self, x: "np.array") -> "numpy array":
 
@@ -34,10 +32,9 @@ class ReconstructionAnomalyScore:
         return x
 
     ###########################################################################
-    def _get_reconstruction_error_ids(self,
-        flux_wise_error: "numpy array",
-        percentage: "int",
-        )->"numpy array":
+    def _get_reconstruction_error_ids(
+        self, flux_wise_error: "numpy array", percentage: "int"
+    ) -> "numpy array":
 
         """
         Computes the ids of the pixels with the largest reconstruction
@@ -60,17 +57,14 @@ class ReconstructionAnomalyScore:
         number_anomalous_fluxes = int(0.01 * percentage * number_fluxes)
 
         largest_reconstruction_error_ids = np.argpartition(
-            flux_wise_error,
-            -1 * number_anomalous_fluxes,
-            axis=1
-        )[:, -1 * number_anomalous_fluxes:]
+            flux_wise_error, -1 * number_anomalous_fluxes, axis=1
+        )[:, -1 * number_anomalous_fluxes :]
 
         return largest_reconstruction_error_ids
+
     ###########################################################################
     def _get_anomaly_score(
-        self,
-        flux_wise_error: "numpy_array",
-        percentage: "int"
+        self, flux_wise_error: "numpy_array", percentage: "int"
     ) -> "numpy array":
 
         """
@@ -85,8 +79,7 @@ class ReconstructionAnomalyScore:
         """
 
         reconstruction_error_ids = self._get_reconstruction_error_ids(
-            flux_wise_error,
-            percentage,
+            flux_wise_error, percentage
         )
 
         anomaly_score = np.empty(reconstruction_error_ids.shape)
@@ -104,7 +97,7 @@ class ReconstructionAnomalyScore:
         percentage: "int",
         relative: "bool" = False,
         epsilon: "float" = 1e-3,
-        )-> "numpy array":
+    ) -> "numpy array":
 
         """
         PARAMETERS
@@ -122,13 +115,14 @@ class ReconstructionAnomalyScore:
         flux_wise_error = np.square(reconstruction - observation)
 
         if relative:
-            flux_wise_error *= 1./np.square(reconstruction + epsilon)
+            flux_wise_error *= 1.0 / np.square(reconstruction + epsilon)
 
         flux_wise_error = self._update_dimensions(flux_wise_error)
 
         anomaly_score = self._get_anomaly_score(flux_wise_error, percentage)
 
         return anomaly_score
+
     ###########################################################################
     def mad(
         self,
@@ -136,7 +130,7 @@ class ReconstructionAnomalyScore:
         percentage: "int",
         relative: "bool" = False,
         epsilon: "float" = 1e-3,
-        )-> "numpy array":
+    ) -> "numpy array":
 
         """
         PARAMETERS
@@ -154,14 +148,17 @@ class ReconstructionAnomalyScore:
         flux_wise_error = np.abs(reconstruction - observation)
 
         if relative:
-            flux_wise_error *= 1./np.abs(reconstruction + epsilon)
+            flux_wise_error *= 1.0 / np.abs(reconstruction + epsilon)
 
         flux_wise_error = self._update_dimensions(flux_wise_error)
 
         anomaly_score = self._get_anomaly_score(flux_wise_error, percentage)
 
         return anomaly_score
+
     ###########################################################################
+
+
 #     def _lp(self, O, R, percentage, image):
 #
 #         if image:
@@ -229,7 +226,7 @@ class ReconstructionAnomalyScore:
 #             return o_similarity
 #
 #         return o_score
-    ###########################################################################
+###########################################################################
 #     def top_reconstructions(self, scores, n_top_spectra):
 #         """
 #         Selects the most normal and outlying objecs
