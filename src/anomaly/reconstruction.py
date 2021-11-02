@@ -227,28 +227,3 @@ class ReconstructionAnomalyScore:
 #
 #         return o_score
 ###########################################################################
-#     def top_reconstructions(self, scores, n_top_spectra):
-#         """
-#         Selects the most normal and outlying objecs
-#
-#         Args:
-#             scores: (1D np.array) outlier scores
-#
-#             n_top_spectra: (int > 0) this parameter controls the number of
-#                 objects identifiers to return for the top reconstruction,
-#                 that is, the idices for the most oulying and the most normal
-#                 objects.
-#
-#         Returns:
-#             most_normal, most_oulying: (1D np.array, 1D np.array) numpy arrays
-#                 with the location indexes of the most normal and outlying
-#                 object in the training (and pred) set.
-#         """
-#
-#         spec_idxs = np.argpartition(scores,
-#             [n_top_spectra, -1 * n_top_spectra])
-#
-#         most_normal_ids = spec_idxs[: n_top_spectra]
-#         most_oulying_ids = spec_idxs[-1 * n_top_spectra:]
-#
-#         return most_normal_ids, most_oulying_ids
