@@ -12,7 +12,7 @@ from anomaly.reconstruction import ReconstructionAnomalyScore
 from autoencoders.deterministic.autoencoder import AE
 from autoencoders.variational.autoencoder import VAE
 
-# from sdss.superclasses import FileDirectory
+from sdss.superclasses import FileDirectory
 
 ###############################################################################
 if __name__ == "__main__":
@@ -23,7 +23,7 @@ if __name__ == "__main__":
     parser = ConfigParser(interpolation=ExtendedInterpolation())
     parser.read("reconstruction.ini")
     # Check files and directory
-    # check = FileDirectory()
+    check = FileDirectory()
     ###########################################################################
     # Load model
     model_type = parser.get("directories", "model_type")
@@ -57,6 +57,19 @@ if __name__ == "__main__":
             percentage=percentage,
             relative=relative,
         )
+
+    save_scores = parser.getboolean("parameters", "save_scores")
+
+    if save_scores:
+
+        output_directory = parser.get("directories", "output")
+        FileDirectory().check_directory(output_directory, exit=False)
+
+        anomaly_score_name = parser.get("files","anomaly_score")
+        save_to = f"{output_directory}/{anomaly_score_name}"
+
+
+        np.save(save_to, anomaly_score)
 
     ###########################################################################
     finish_time = time.time()
