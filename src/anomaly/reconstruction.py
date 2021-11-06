@@ -19,6 +19,17 @@ class ReconstructionAnomalyScore:
         self.model = model
 
     ###########################################################################
+    # plot_model(vae.model,
+    #     to_file='/home/edgar/memoir/figures/models/vae/vae_simple.pdf',
+    #     show_shapes=True,
+    #     show_dtype=False,
+    #     show_layer_names=True,
+    #     rankdir='TB',
+    #     expand_nested=False,
+    #     #dpi=10,
+    #     layer_range=None
+    #     )
+    ###########################################################################
     def _reconstruct(self, observation: "numpy array"):
 
         return self.model.reconstruct(observation)
