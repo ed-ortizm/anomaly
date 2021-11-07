@@ -39,5 +39,7 @@ anomalous_number = parser.getint("parameters", "anomalous_number")
 np.save(f"{input_data_directory}/normal_ids.npy", normal_ids)
 np.save(f"{input_data_directory}/anomalous_ids.npy", anomalies_ids)
 ###############################################################################
+print(analyze.get_percentiles())
+###############################################################################
 finish_time = time.time()
 print(f"Run time: {finish_time - start_time:.2f}")

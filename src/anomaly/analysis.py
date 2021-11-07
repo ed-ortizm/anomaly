@@ -11,6 +11,10 @@ class AnalysisAnomalyScore:
         self.scores = anomaly_scores
 
     ###########################################################################
+    def get_percentiles(self, range:list=[0, 25, 55, 75, 99.9, 100]):
+
+        return np.percentile(self.scores, q=range)
+    ###########################################################################
     def top_scores(self,
         number_normal: "int",
         number_anomalies: "int",
