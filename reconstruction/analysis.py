@@ -23,7 +23,21 @@ anomaly_score_name = parser.get("files", "anomaly_score")
 anomaly_score = np.load(f"{input_data_directory}/{anomaly_score_name}")
 ###############################################################################
 # Load class to analyse anomaies
-analyze_anomalies = AnalysisAnomalyScore(anomaly_score)
+analyze = AnalysisAnomalyScore(anomaly_score)
+# get top scores
+normal_number = parser.getint("parameters", "normal_number")
+anomalous_number = parser.getint("parameters", "anomalous_number")
+
+[
+    normal_ids,
+    anomalies_ids
+] = analyze.top_scores(
+    number_normal=normal_number,
+    number_anomalies=anomalous_number
+)
+
+np.save(f"{input_data_directory}/normal_ids.npy", normal_ids)
+np.save(f"{input_data_directory}/anomalous_ids.npy", anomalies_ids)
 ###############################################################################
 finish_time = time.time()
 print(f"Run time: {finish_time - start_time:.2f}")

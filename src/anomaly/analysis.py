@@ -32,7 +32,7 @@ class AnalysisAnomalyScore:
 
         normal_ids = self._get_top_ids(number_normal, anomalous=False)
 
-        anomalous_ids = self._get_top_ids(number_anomalies, anomalous=False)
+        anomalous_ids = self._get_top_ids(number_anomalies, anomalous=True)
 
         return [normal_ids, anomalous_ids]
     ###########################################################################
@@ -59,7 +59,7 @@ class AnalysisAnomalyScore:
         """
 
         score_ids = np.argpartition(
-            self._scores,
+            self.scores,
             [number_objects, -1 * number_objects]
         )
         if anomalous:
