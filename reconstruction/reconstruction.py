@@ -26,7 +26,7 @@ if __name__ == "__main__":
     check = FileDirectory()
     ###########################################################################
     # Load model
-    model_type = parser.get("directories", "model_type")
+    model_type = parser.get("common", "model_type")
     model_directory = parser.get("directories", "model")
 
 
@@ -63,11 +63,10 @@ if __name__ == "__main__":
     if save_scores:
 
         output_directory = parser.get("directories", "output")
-        FileDirectory().check_directory(output_directory, exit=False)
+        check.check_directory(output_directory, exit=False)
 
         anomaly_score_name = parser.get("files","anomaly_score")
         save_to = f"{output_directory}/{anomaly_score_name}"
-
 
         np.save(save_to, anomaly_score)
 
