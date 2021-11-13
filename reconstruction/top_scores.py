@@ -5,7 +5,6 @@ import time
 import numpy as np
 
 from anomaly.analysis import AnalysisAnomalyScore
-# from anomaly.reconstruction import ReconstructionAnomalyScore
 
 from sdss.superclasses import FileDirectory
 
@@ -28,10 +27,7 @@ analyze = AnalysisAnomalyScore(anomaly_score)
 normal_number = parser.getint("parameters", "normal_number")
 anomalous_number = parser.getint("parameters", "anomalous_number")
 
-[
-    normal_ids,
-    anomalies_ids
-] = analyze.top_scores(
+[normal_ids, anomalies_ids] = analyze.top_scores(
     number_normal=normal_number,
     number_anomalies=anomalous_number
 )
