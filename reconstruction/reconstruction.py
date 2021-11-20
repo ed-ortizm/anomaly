@@ -72,7 +72,7 @@ if metric == "mse":
         percentage=percentage,
         relative=relative,
         reconstruction_in_drive = reconstruction_in_drive,
-        reconstructions = reconstructions
+        reconstruction = reconstruction
     )
 ###############################################################################
 output_directory = parser.get("directories", "output")

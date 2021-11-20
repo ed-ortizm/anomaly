@@ -93,7 +93,7 @@ class ReconstructionAnomalyScore:
     ###########################################################################
     def mse(
         self,
-        observation: np.array",
+        observation: np.array,
         percentage: int,
         relative: bool,
         reconstruction_in_drive: bool,
