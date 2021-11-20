@@ -5,7 +5,6 @@ import time
 import numpy as np
 import pandas as pd
 
-from anomaly.analysis import AnalysisAnomalyScore
 from anomaly.reconstruction import ReconstructionAnomalyScore
 
 from autoencoders.deterministic.autoencoder import AE
@@ -39,7 +38,26 @@ elif model_type == "vae":
 input_data_directory = parser.get("directories", "input")
 train_set_name = parser.get("files", "observations")
 observations = np.load(f"{input_data_directory}/{train_set_name}")
-###########################################################################
+###############################################################################
+reconstructions_name = parser.get("files", "reconstructions")
+reconstruction_location = f"{model_directory}/{reconstructions_name}"
+
+reconstruction_in_drive = parser.getboolean(
+    "parameters", "reconstruction_in_drive"
+    )
+
+if not reconstruction_in_drive:
+
+    reconstruction = model.reconstruct(observations)
+
+    # reconstructions_name = parser.get("files", "reconstructions")
+    # save_to = f"{model_directory}/{reconstructions_name}"
+
+    np.save(reconstruction_location, reconstruction)
+
+else:
+    reconstruction = np.load(reconstruction_location)
+###############################################################################
 # Load class to compute scores
 analyze_anomalies = ReconstructionAnomalyScore(model)
 # metric parameters
@@ -48,12 +66,15 @@ relative = parser.getboolean("score", "relative")
 percentage = parser.getfloat("score", "percentage")
 
 if metric == "mse":
+
     anomaly_score = analyze_anomalies.mse(
         observation=observations,
         percentage=percentage,
         relative=relative,
+        reconstruction_in_drive = reconstruction_in_drive,
+        reconstructions = reconstructions
     )
-
+###############################################################################
 output_directory = parser.get("directories", "output")
 check.check_directory(output_directory, exit=False)
 
@@ -66,19 +87,6 @@ if save_scores:
 
     np.save(save_to, anomaly_score)
     print(save_to)
-
-save_reconstruction = parser.getboolean("parameters", "save_reconstruction")
-
-if save_reconstruction:
-
-    reconstructions = model.reconstruct(observations)
-
-    reconstructions_name = parser.get("files", "reconstructions")
-    save_to = f"{model_directory}/{reconstructions_name}"
-
-    np.save(save_to, observations)
-    print(save_to)
-
 ###########################################################################
 finish_time = time.time()
 print(f"Run time: {finish_time - start_time:.2f}")

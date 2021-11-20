@@ -16,9 +16,12 @@ class AnalysisAnomalyScore:
         return np.percentile(self.scores, q=range)
     ###########################################################################
     def top_scores(self,
-        number_normal: "int",
-        number_anomalies: "int",
-    )->"[1D numpy array, 1D numpy array]":
+        number_scores: int,
+        anomalous = True,
+        # number_normal: "int",
+        # number_anomalies: "int",
+    # )->"[1D numpy array, 1D numpy array]":
+    )->"1D numpy array":
         """
         Find the most normal and most anomalous objecs
 
@@ -34,11 +37,15 @@ class AnalysisAnomalyScore:
         """
 
 
-        normal_ids = self._get_top_ids(number_normal, anomalous=False)
+        # normal_ids = self._get_top_ids(number_normal, anomalous=False)
 
-        anomalous_ids = self._get_top_ids(number_anomalies, anomalous=True)
+        # anomalous_ids = self._get_top_ids(number_anomalies, anomalous=True)
 
-        return [normal_ids, anomalous_ids]
+        # return [normal_ids, anomalous_ids]
+
+        scores_ids = self._get_top_ids(number_scores, anomalous)
+
+        return scores_ids
     ###########################################################################
     def _get_top_ids(
         self,
@@ -62,13 +69,22 @@ class AnalysisAnomalyScore:
 
         """
 
-        score_ids = np.argpartition(
-            self.scores,
-            [number_objects, -1 * number_objects]
-        )
-        if anomalous:
-            objects_ids = score_ids[-1 * number_objects:]
-        else:
-            objects_ids = score_ids[: number_objects]
+        # score_ids = np.argpartition(
+        #     self.scores,
+        #     [number_objects, -1 * number_objects]
+        # )
+        # if anomalous:
+        #     objects_ids = score_ids[-1 * number_objects:]
+        # else:
+        #     objects_ids = score_ids[: number_objects]
 
-        return objects_ids
+        if anomalous:
+            number_objects = -1* number_objects
+
+        scores_ids = np.argpartition(self.scores, number_objects)
+
+        if anomalous:
+            return scores_ids[number_objects:]
+
+
+        return scores_ids[:number_objects]

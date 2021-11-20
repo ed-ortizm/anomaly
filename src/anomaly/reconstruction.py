@@ -19,17 +19,6 @@ class ReconstructionAnomalyScore:
         self.model = model
 
     ###########################################################################
-    # plot_model(vae.model,
-    #     to_file='/home/edgar/memoir/figures/models/vae/vae_simple.pdf',
-    #     show_shapes=True,
-    #     show_dtype=False,
-    #     show_layer_names=True,
-    #     rankdir='TB',
-    #     expand_nested=False,
-    #     #dpi=10,
-    #     layer_range=None
-    #     )
-    ###########################################################################
     def _reconstruct(self, observation: "numpy array"):
 
         return self.model.reconstruct(observation)
@@ -104,10 +93,12 @@ class ReconstructionAnomalyScore:
     ###########################################################################
     def mse(
         self,
-        observation: "numpy array",
-        percentage: "int",
-        relative: "bool" = False,
-        epsilon: "float" = 1e-3,
+        observation: np.array",
+        percentage: int,
+        relative: bool,
+        reconstruction_in_drive: bool,
+        reconstruction: np.array,
+        epsilon: float = 1e-3,
     ) -> "numpy array":
 
         """
@@ -122,7 +113,9 @@ class ReconstructionAnomalyScore:
             anomaly score of the input observation
         """
 
-        reconstruction = self._reconstruct(observation)
+        if not reconstruction_in_drive:
+            reconstruction = self._reconstruct(observation)
+
         flux_wise_error = np.square(reconstruction - observation)
 
         if relative:
