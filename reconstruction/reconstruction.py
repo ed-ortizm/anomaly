@@ -54,6 +54,8 @@ if not reconstruction_in_drive:
     reconstruction = model.reconstruct(observation)
     np.save(reconstruction_location, reconstruction)
 
+    reconstruction_in_drive = True # to avoid recomputing it in .mse
+
 else:
 
     reconstruction = np.load(reconstruction_location)
@@ -65,7 +67,7 @@ metric = parser.get("score", "metric")
 # relative = parser.getboolean("score", "relative")
 relative_values = [True, False]
 
-percentage = parser.getfloat("score", "percentage")
+percentage = parser.get("score", "percentage")
 percentage = percentage.replace(" ", "").split(",")
 percentage_values = [int(value) for value in percentage]
 
