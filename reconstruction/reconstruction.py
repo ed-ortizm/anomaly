@@ -81,10 +81,10 @@ specobjid = indexes_interpolate[succesful_interpolation, 1]
 idx_train_set = indexes_interpolate[succesful_interpolation, 0]
 
 
-data_frame = pd.DataFrame(
-    columns=["specobjid", "trainID"],
-    data=[specobjid, idx_train_set]
-    )
+data_frame = pd.DataFrame()
+
+data_frame["specobjid"] = specobjid
+data_frame["trainID"] = idx_train_set
 
 for relative in relative_values:
 
