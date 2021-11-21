@@ -24,13 +24,6 @@ anomaly_score = np.load(f"{input_output_directory}/{anomaly_score_name}")
 # Load class to analyse anomaies
 analyze = AnalysisAnomalyScore(anomaly_score)
 # get top scores
-# normal_number = parser.getint("parameters", "normal_number")
-# anomalous_number = parser.getint("parameters", "anomalous_number")
-
-# [normal_train_idx, anomalous_train_idx] = analyze.top_scores(
-#     number_normal=normal_number,
-#     number_anomalies=anomalous_number
-# )
 normal_number = parser.getint("parameters", "normal_number")
 normal_train_idx = analyze.top_scores(normal_number, anomalous=False)
 
