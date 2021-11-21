@@ -75,9 +75,15 @@ percentage_values = [int(value) for value in percentage]
 train_id_name = parser.get("files", "train_id")
 indexes_interpolate = np.load(f"{input_data_directory}/{train_id_name}")
 
+succesful_interpolation = ~indexes_interpolate[:, 2].astype(np.bool)
+
+specobjid = indexes_interpolate[succesful_interpolation, 1]
+idx_train_set = indexes_interpolate[succesful_interpolation, 0]
+
+
 data_frame = pd.DataFrame(
-    columns=["specobjid"],
-    data=indexes_interpolate[:, 1]
+    columns=["specobjid", "trainID"],
+    data=[specobjid, idx_train_set]
     )
 
 for relative in relative_values:
