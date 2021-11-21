@@ -103,7 +103,7 @@ for relative in relative_values:
         if save_scores:
 
             anomaly_score_name = (
-                f"${metric}_relative_${relative}_percentage_${percentage}"
+                f"{metric}_relative_{relative}_percentage_{percentage}"
             )
 
             save_to = f"{output_directory}/{anomaly_score_name}"
