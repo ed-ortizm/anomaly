@@ -19,76 +19,52 @@ class ReconstructionAnomalyScore:
         self.model = model
 
     ###########################################################################
-    def _reconstruct(self, observation: "numpy array"):
-
-        return self.model.reconstruct(observation)
-
-    ###########################################################################
-    def _update_dimensions(self, x: "np.array") -> "numpy array":
-
-        if x.ndim == 1:
-            x = x[np.newaxis, ...]
-
-        return x
-
-    ###########################################################################
-    def _get_reconstruction_error_ids(
-        self, flux_wise_error: "numpy array", percentage: "int"
-    ) -> "numpy array":
-
+    def anomaly_score(self,
+        metric:str,
+        observation: np.array,
+        percentage: int,
+        relative: bool,
+        reconstruction_in_drive: bool= False,
+        reconstruction: np.array = None,
+        epsilon: float = 1e-3,
+        ) -> np.array:
         """
-        Computes the ids of the pixels with the largest reconstruction
-            errors. If percentage is 100, then it does nothing.
-            If percentage is 30%, for instance, it returns the ids of
-            30% of the pixels with the highest reconstruction errors.
-
         PARAMETERS
-            flux_wise_error: array with reconstruction errors
-                flux by flux
+            metric: name of the metric, mse, lp and so on
+            observation: array with the origin of fluxes
             percentage: percentage of fluxes with the highest
                 reconstruction error to consider to compute
                 the anomaly score
+            relative: whether or not the score is weigthed by the input
+            epsilon: float value to avoid division by zero
         OUTPUT
-            largest_reconstruction_error_ids: ids with the percentage
-                of pixels with the highest reconstruction errors
+            anomaly_score: of the input observation
         """
 
-        number_fluxes = flux_wise_error.shape[1]
-        number_anomalous_fluxes = int(0.01 * percentage * number_fluxes)
+        if metric=="mse":
 
-        largest_reconstruction_error_ids = np.argpartition(
-            flux_wise_error, -1 * number_anomalous_fluxes, axis=1
-        )[:, -1 * number_anomalous_fluxes :]
+            anomaly_score = self.mse(
+                observation=observation,
+                percentage=percentage,
+                relative=relative,
+                reconstruction_in_drive = reconstruction_in_drive,
+                reconstruction = reconstruction
+            )
 
-        return largest_reconstruction_error_ids
+            return anomaly_score
+        #######################################################################
+        if metric=="mad":
 
-    ###########################################################################
-    def _get_anomaly_score(
-        self, flux_wise_error: "numpy_array", percentage: "int"
-    ) -> "numpy array":
+            anomaly_score = self.mad(
+                observation=observation,
+                percentage=percentage,
+                relative=relative,
+                reconstruction_in_drive = reconstruction_in_drive,
+                reconstruction = reconstruction
+            )
 
-        """
-        PARAMETERS
-            flux_wise_error: array with reconstruction errors
-                flux by flux
-            percentage: percentage of fluxes with the highest
-                reconstruction error to consider to compute
-                the anomaly score
-        OUTPUT
-            mean anomaly score of the input observation
-        """
-
-        reconstruction_error_ids = self._get_reconstruction_error_ids(
-            flux_wise_error, percentage
-        )
-
-        anomaly_score = np.empty(reconstruction_error_ids.shape)
-
-        for idx, reconstruction_id in enumerate(reconstruction_error_ids):
-
-            anomaly_score[idx, :] = flux_wise_error[idx, reconstruction_id]
-
-        return np.mean(anomaly_score, axis=1)
+            return anomaly_score
+        #######################################################################
 
     ###########################################################################
     def mse(
@@ -99,7 +75,7 @@ class ReconstructionAnomalyScore:
         reconstruction_in_drive: bool,
         reconstruction: np.array,
         epsilon: float = 1e-3,
-    ) -> "numpy array":
+    ) -> np.array:
 
         """
         PARAMETERS
@@ -130,11 +106,11 @@ class ReconstructionAnomalyScore:
     ###########################################################################
     def mad(
         self,
-        observation: "numpy array",
-        percentage: "int",
-        relative: "bool" = False,
-        epsilon: "float" = 1e-3,
-    ) -> "numpy array":
+        observation: np.array,
+        percentage: int,
+        relative: bool = False,
+        epsilon: float = 1e-3,
+    ) -> np.array:
 
         """
         PARAMETERS
@@ -159,6 +135,78 @@ class ReconstructionAnomalyScore:
         anomaly_score = self._get_anomaly_score(flux_wise_error, percentage)
 
         return anomaly_score
+
+    ###########################################################################
+    def _reconstruct(self, observation: np.array):
+
+        return self.model.reconstruct(observation)
+
+    ###########################################################################
+    def _update_dimensions(self, x: "np.array") -> np.array:
+
+        if x.ndim == 1:
+            x = x[np.newaxis, ...]
+
+        return x
+
+    ###########################################################################
+    def _get_reconstruction_error_ids(
+        self, flux_wise_error: np.array, percentage: int
+    ) -> np.array:
+
+        """
+        Computes the ids of the pixels with the largest reconstruction
+            errors. If percentage is 100, then it does nothing.
+            If percentage is 30%, for instance, it returns the ids of
+            30% of the pixels with the highest reconstruction errors.
+
+        PARAMETERS
+            flux_wise_error: array with reconstruction errors
+                flux by flux
+            percentage: percentage of fluxes with the highest
+                reconstruction error to consider to compute
+                the anomaly score
+        OUTPUT
+            largest_reconstruction_error_ids: ids with the percentage
+                of pixels with the highest reconstruction errors
+        """
+
+        number_fluxes = flux_wise_error.shape[1]
+        number_anomalous_fluxes = int(0.01 * percentage * number_fluxes)
+
+        largest_reconstruction_error_ids = np.argpartition(
+            flux_wise_error, -1 * number_anomalous_fluxes, axis=1
+        )[:, -1 * number_anomalous_fluxes :]
+
+        return largest_reconstruction_error_ids
+
+    ###########################################################################
+    def _get_anomaly_score(
+        self, flux_wise_error: np.array, percentage: int
+    ) -> np.array:
+
+        """
+        PARAMETERS
+            flux_wise_error: array with reconstruction errors
+                flux by flux
+            percentage: percentage of fluxes with the highest
+                reconstruction error to consider to compute
+                the anomaly score
+        OUTPUT
+            mean anomaly score of the input observation
+        """
+
+        reconstruction_error_ids = self._get_reconstruction_error_ids(
+            flux_wise_error, percentage
+        )
+
+        anomaly_score = np.empty(reconstruction_error_ids.shape)
+
+        for idx, reconstruction_id in enumerate(reconstruction_error_ids):
+
+            anomaly_score[idx, :] = flux_wise_error[idx, reconstruction_id]
+
+        return np.mean(anomaly_score, axis=1)
 
     ###########################################################################
 
