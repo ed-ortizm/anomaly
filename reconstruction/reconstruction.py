@@ -47,14 +47,14 @@ reconstruction_location = f"{model_directory}/{reconstruction_name}"
 
 reconstruction_in_drive = parser.getboolean(
     "parameters", "reconstruction_in_drive"
-    )
+)
 
 if not reconstruction_in_drive:
 
     reconstruction = model.reconstruct(observation)
     np.save(reconstruction_location, reconstruction)
 
-    reconstruction_in_drive = True # to avoid recomputing it in .mse
+    reconstruction_in_drive = True  # to avoid recomputing it in .mse
 
 else:
 
@@ -96,8 +96,8 @@ for relative in relative_values:
                 observation=observation,
                 percentage=percentage,
                 relative=relative,
-                reconstruction_in_drive = reconstruction_in_drive,
-                reconstruction = reconstruction
+                reconstruction_in_drive=reconstruction_in_drive,
+                reconstruction=reconstruction,
             )
         #######################################################################
         # Save anomaly scores
@@ -117,7 +117,7 @@ for relative in relative_values:
             np.save(f"{save_to}.npy", anomaly_score)
         #######################################################################
         # save to data frame
-        data_frame['anomalyScore'] = anomaly_score
+        data_frame["anomalyScore"] = anomaly_score
 
         data_frame.to_csv(f"{save_to}.csv.gz", index=False)
 ###############################################################################

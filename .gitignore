@@ -4,7 +4,9 @@
 *.csv
 *.log
 *.txt
+
 *.dat
+!data/line_wavelengths.dat
 *.png
 *.jpg
 *.pdf

@@ -19,15 +19,18 @@ class ReconstructionAnomalyScore:
         self.model = model
 
     ###########################################################################
-    def anomaly_score(self,
-        metric:str,
+    def anomaly_score(
+        self,
+        metric: str,
         observation: np.array,
         percentage: int,
         relative: bool,
-        reconstruction_in_drive: bool= False,
+        filter_narrow_lines:bool,
+        velocity_filter: float=None,
+        reconstruction_in_drive: bool = False,
         reconstruction: np.array = None,
         epsilon: float = 1e-3,
-        ) -> np.array:
+    ) -> np.array:
         """
         PARAMETERS
             metric: name of the metric, mse, lp and so on
@@ -41,31 +44,53 @@ class ReconstructionAnomalyScore:
             anomaly_score: of the input observation
         """
 
-        if metric=="mse":
+        if filter_narrow_lines:
+
+            observation = self.filter_narrow_lines(
+                observation,
+                velocity_filter,
+            )
+
+            ###################################################################
+            if reconstruction_in_drive:
+
+                reconstruction = self.filter_narrow_lines(
+                    reconstruction,
+                    velocity_filter,
+                )
+
+        #######################################################################
+        if metric == "mse":
 
             anomaly_score = self.mse(
                 observation=observation,
                 percentage=percentage,
                 relative=relative,
-                reconstruction_in_drive = reconstruction_in_drive,
-                reconstruction = reconstruction
+                reconstruction_in_drive=reconstruction_in_drive,
+                reconstruction=reconstruction,
             )
 
             return anomaly_score
         #######################################################################
-        if metric=="mad":
+        if metric == "mad":
 
             anomaly_score = self.mad(
                 observation=observation,
                 percentage=percentage,
                 relative=relative,
-                reconstruction_in_drive = reconstruction_in_drive,
-                reconstruction = reconstruction
+                reconstruction_in_drive=reconstruction_in_drive,
+                reconstruction=reconstruction,
             )
 
             return anomaly_score
         #######################################################################
 
+    ###########################################################################
+    def filter_narrow_lines(self,
+        observation:np.array,
+        velocity_filter,
+    )-> np.array:
+        pass
     ###########################################################################
     def mse(
         self,

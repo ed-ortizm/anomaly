@@ -3,25 +3,26 @@ import numpy as np
 
 class AnalysisAnomalyScore:
     """"""
+
     ###########################################################################
-    def __init__(self,
-        anomaly_scores: "2D numpy array",
-    ):
+    def __init__(self, anomaly_scores: "2D numpy array"):
         """"""
         self.scores = anomaly_scores
 
     ###########################################################################
-    def get_percentiles(self, range:list=[0, 25, 55, 75, 99.9, 100]):
+    def get_percentiles(self, range: list = [0, 25, 55, 75, 99.9, 100]):
 
         return np.percentile(self.scores, q=range)
+
     ###########################################################################
-    def top_scores(self,
+    def top_scores(
+        self,
         number_scores: int,
-        anomalous = True,
+        anomalous=True,
         # number_normal: "int",
         # number_anomalies: "int",
-    # )->"[1D numpy array, 1D numpy array]":
-    )->"1D numpy array":
+        # )->"[1D numpy array, 1D numpy array]":
+    ) -> "1D numpy array":
         """
         Find the most normal and most anomalous objecs
 
@@ -36,7 +37,6 @@ class AnalysisAnomalyScore:
                 indexes of the most normal and anomalous objects.
         """
 
-
         # normal_ids = self._get_top_ids(number_normal, anomalous=False)
 
         # anomalous_ids = self._get_top_ids(number_anomalies, anomalous=True)
@@ -46,12 +46,11 @@ class AnalysisAnomalyScore:
         scores_ids = self._get_top_ids(number_scores, anomalous)
 
         return scores_ids
+
     ###########################################################################
     def _get_top_ids(
-        self,
-        number_objects: "int",
-        anomalous:"bool",
-    )->"1D numpy array":
+        self, number_objects: "int", anomalous: "bool"
+    ) -> "1D numpy array":
 
         """
         Get the ids with the objects having the largest or smallest
@@ -79,12 +78,11 @@ class AnalysisAnomalyScore:
         #     objects_ids = score_ids[: number_objects]
 
         if anomalous:
-            number_objects = -1* number_objects
+            number_objects = -1 * number_objects
 
         scores_ids = np.argpartition(self.scores, number_objects)
 
         if anomalous:
             return scores_ids[number_objects:]
-
 
         return scores_ids[:number_objects]
