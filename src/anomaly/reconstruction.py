@@ -6,13 +6,13 @@ import tensorflow as tf
 
 ###############################################################################
 GALAXY_LINES = {
-    "OII_3727" : 3727.,
-    "H_beta_4861" : 4861.,
-    "OIII_4959" : 4959.,
-    "OIII_5007" : 5007.,
-    "NII_6548" : 6548.,
-    "H_alpha_6563" : 6563.,
-    "NII_6584" : 6584,
+    "OII_3727": 3727.0,
+    "H_beta_4861": 4861.0,
+    "OIII_4959": 4959.0,
+    "OIII_5007": 5007.0,
+    "NII_6548": 6548.0,
+    "H_alpha_6563": 6563.0,
+    "NII_6584": 6584,
 }
 ###############################################################################
 class ReconstructionAnomalyScore:
@@ -22,10 +22,7 @@ class ReconstructionAnomalyScore:
     """
 
     ###########################################################################
-    def __init__(self,
-        model: tf.Keras.Model,
-        wave: np.array,
-        ):
+    def __init__(self, model: tf.keras.Model, wave: np.array):
         """
         INPUTS
             model: trained generative model with reconstruct method
@@ -42,9 +39,9 @@ class ReconstructionAnomalyScore:
         observation: np.array,
         percentage: int,
         relative: bool,
-        filter_lines:bool,
-        lines: list=None,
-        velocity_filter: float=None,
+        filter_lines: bool,
+        lines: list = None,
+        velocity_filter: float = None,
         reconstruction_in_drive: bool = False,
         reconstruction: np.array = None,
         epsilon: float = 1e-3,
@@ -88,20 +85,15 @@ class ReconstructionAnomalyScore:
         if metric == "mse":
 
             anomaly_score = self.mse(
-                observation,
-                reconstruction,
-                percentage,
-                relative,
-                epsilon,
+                observation, reconstruction, percentage, relative, epsilon
             )
 
             return anomaly_score
 
     ###########################################################################
-    def get_velocity_filter_mask(self,
-        lines:list,
-        velocity_filter:float,
-    )-> np.array:
+    def get_velocity_filter_mask(
+        self, lines: list, velocity_filter: float
+    ) -> np.array:
 
         """
         PARAMETERS
@@ -113,14 +105,14 @@ class ReconstructionAnomalyScore:
             velocity_mask: array of bools with the regions to discard
 
         """
-        c = cst.c * 1e-3 # [km/s]
+        c = cst.c * 1e-3  # [km/s]
         z = velocity_filter / c
 
         velocity_mask = self.wave.astype(np.bool)
 
         for line in lines:
 
-            delta_wave = GALAXY_LINES[line]*z
+            delta_wave = GALAXY_LINES[line] * z
             # move line to origin
             wave = self.wave - GALAXY_LINES[line]
             line_mask = (wave < -delta_wave) * (delta_wave < wave)
@@ -128,6 +120,7 @@ class ReconstructionAnomalyScore:
             velocity_mask *= line_mask
 
         return velocity_mask
+
     ###########################################################################
     def mse(
         self,
