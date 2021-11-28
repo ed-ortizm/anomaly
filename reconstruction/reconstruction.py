@@ -34,7 +34,6 @@ elif model_type == "vae":
 
 ###############################################################################
 # Load data
-
 input_data_directory = parser.get("directories", "input")
 
 train_set_name = parser.get("files", "observation")
@@ -61,7 +60,7 @@ else:
     reconstruction = np.load(reconstruction_location)
 ###############################################################################
 # Load class to compute scores
-get_score = ReconstructionAnomalyScore(model)
+analysis = ReconstructionAnomalyScore(model)
 # metric parameters
 metric = parser.get("score", "metric")
 # relative = parser.getboolean("score", "relative")
@@ -80,7 +79,10 @@ succesful_interpolation = ~indexes_interpolate[:, 2].astype(np.bool)
 specobjid = indexes_interpolate[succesful_interpolation, 1]
 idx_train_set = indexes_interpolate[succesful_interpolation, 0]
 
-
+###############################################################################
+filter_narrow_lines = parser.getboolean("score", "filter_narrow_lines")
+velocity_filter = parser.getfloat("score", "velocity_filter")
+###############################################################################
 data_frame = pd.DataFrame()
 
 data_frame["specobjid"] = specobjid
@@ -90,15 +92,16 @@ for relative in relative_values:
 
     for percentage in percentage_values:
 
-        if metric == "mse":
-
-            anomaly_score = get_score.mse(
-                observation=observation,
-                percentage=percentage,
-                relative=relative,
-                reconstruction_in_drive=reconstruction_in_drive,
-                reconstruction=reconstruction,
-            )
+        anomaly_score = analysis.anomaly_score(
+            metric=metric,
+            observation=observation,
+            percentage=percentage,
+            relative=relative,
+            filter_narrow_lines = filter_narrow_lines,
+            velocity_filter = velocity_filter,
+            reconstruction_in_drive=reconstruction_in_drive,
+            reconstruction=reconstruction,
+        )
         #######################################################################
         # Save anomaly scores
         output_directory = parser.get("directories", "output")

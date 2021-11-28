@@ -1,6 +1,13 @@
 import sys
-import numpy as np
 
+import numpy as np
+import scipy.constants as cst
+
+###############################################################################
+# galaxy_lines {
+
+
+# }
 ###############################################################################
 class ReconstructionAnomalyScore:
     """
@@ -44,30 +51,17 @@ class ReconstructionAnomalyScore:
             anomaly_score: of the input observation
         """
 
-        if filter_narrow_lines:
-
-            observation = self.filter_narrow_lines(
-                observation,
-                velocity_filter,
-            )
-
-            ###################################################################
-            if reconstruction_in_drive:
-
-                reconstruction = self.filter_narrow_lines(
-                    reconstruction,
-                    velocity_filter,
-                )
-
         #######################################################################
         if metric == "mse":
 
             anomaly_score = self.mse(
-                observation=observation,
-                percentage=percentage,
-                relative=relative,
-                reconstruction_in_drive=reconstruction_in_drive,
-                reconstruction=reconstruction,
+                observation,
+                percentage,
+                relative,
+                filter_narrow_lines,
+                velocity_filter,
+                reconstruction_in_drive,
+                reconstruction,
             )
 
             return anomaly_score
@@ -87,9 +81,72 @@ class ReconstructionAnomalyScore:
 
     ###########################################################################
     def filter_narrow_lines(self,
-        observation:np.array,
-        velocity_filter,
+        spectra:np.array,
+        wave:np.array,
+        velocity_filter:float,
+        OII_3727:bool,
+        H_beta_4861:bool,
+        OIII_4959:bool,
+        OIII_5007:bool,
+        NII_6548:bool,
+        H_alpha_6563:bool,
+        NII_6584:bool,
     )-> np.array:
+
+        """
+        PARAMETERS
+            velocity_filter: wave = (v/c) * wave, ave in amstrong and
+                c in km/s
+
+        """
+        c = cst.c * 1e-3 # [km/s]
+        z = velocity_filter / c
+
+        velocity_mask = wave.astype(np.bool)
+
+        if OII_3727:
+
+            delta_wave = 3727 * z
+            wave = wave - 3727
+            line_mask = (wave < -delta_wave) * (delta_wave < wave)
+            velocity_mask *= line_mask
+
+        if H_beta_4861:
+
+            delta_wave = 4861 * z
+            wave = wave - 4861
+            velocity_mask = (wave < -delta_wave) * (delta_wave < wave)
+
+        if OIII_4959:
+
+            delta_wave = 4959 * z
+            wave = wave - 4959
+            velocity_mask = (wave < -delta_wave) * (delta_wave < wave)
+
+        if OIII_5007:
+
+            delta_wave = 5007 * z
+            wave = wave - 5007
+            velocity_mask = (wave < -delta_wave) * (delta_wave < wave)
+
+        if NII_6548:
+
+            delta_wave = 6548 * z
+            wave = wave - 6548
+            velocity_mask = (wave < -delta_wave) * (delta_wave < wave)
+
+        if H_alpha_6563:
+
+            delta_wave = 6563 * z
+            wave = wave - 6563
+            velocity_mask = (wave < -delta_wave) * (delta_wave < wave)
+
+        if NII_6584:
+
+            delta_wave = 6584 * z
+            wave = wave - 6584
+            velocity_mask = (wave < -delta_wave) * (delta_wave < wave)
+
         pass
     ###########################################################################
     def mse(
@@ -114,8 +171,24 @@ class ReconstructionAnomalyScore:
             anomaly score of the input observation
         """
 
+        #######################################################################
         if not reconstruction_in_drive:
             reconstruction = self._reconstruct(observation)
+
+        #######################################################################
+        if filter_narrow_lines:
+
+            observation = self.filter_narrow_lines(
+                observation,
+                velocity_filter,
+            )
+
+            reconstruction = self.filter_narrow_lines(
+                reconstruction,
+                velocity_filter,
+            )
+        #######################################################################
+
 
         flux_wise_error = np.square(reconstruction - observation)
 
