@@ -70,10 +70,10 @@ class ReconstructionAnomalyScore:
             anomaly_score: of the input observation
         """
 
-        if not reconstruction_in_drive:
+        if reconstruction_in_drive is False:
             reconstruction = self._reconstruct(observation)
         #######################################################################
-        if filter_lines:
+        if filter_lines is True:
 
             velocity_mask = self.get_velocity_filter_mask(
                 lines, velocity_filter

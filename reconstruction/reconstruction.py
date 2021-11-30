@@ -1,5 +1,6 @@
 #! /usr/bin/env python3
 from configparser import ConfigParser, ExtendedInterpolation
+import sys
 import time
 
 import numpy as np
@@ -10,8 +11,7 @@ from anomaly.reconstruction import ReconstructionAnomalyScore
 from autoencoders.deterministic.autoencoder import AE
 from autoencoders.variational.autoencoder import VAE
 
-from sdss.superclasses import FileDirectory
-
+from sdss.superclasses import FileDirectory, ConfigurationFile
 ###############################################################################
 start_time = time.time()
 ###############################################################################
@@ -48,7 +48,7 @@ reconstruction_in_drive = parser.getboolean(
     "parameters", "reconstruction_in_drive"
 )
 
-if not reconstruction_in_drive:
+if reconstruction_in_drive is False:
 
     reconstruction = model.reconstruct(observation)
     np.save(reconstruction_location, reconstruction)
@@ -69,7 +69,7 @@ analysis = ReconstructionAnomalyScore(model, wave)
 score_items = parser.items("score")
 score_parameters = configuration.section_to_dictionary(score_items, [","])
 
-metrics = score_parameters["metric"]
+metric = score_parameters["metric"]
 
 relative_values = score_parameters["relative"]
 relative_values = [val.strip() == "True" for val in relative_values]
@@ -81,14 +81,14 @@ lines_items = parser.items("lines")
 lines_parameters = configuration.section_to_dictionary(lines_items, [])
 
 lines = lines_parameters["lines"]
-filter_lines = lines_parameters["filter"]
+filter_lines = lines_parameters["filter"] == "True"
 velocity_filter = float(lines_parameters["velocity"])
 ###############################################################################
 # specobjid to save anomaly scores in data frame
 train_id_name = parser.get("files", "train_id")
 indexes_interpolate = np.load(f"{input_data_directory}/{train_id_name}")
 
-succesful_interpolation = ~indexes_interpolate[:, 2].astype(np.bool)
+succesful_interpolation = ~indexes_interpolate[:, 2].astype(bool)
 
 specobjid = indexes_interpolate[succesful_interpolation, 1]
 idx_train_set = indexes_interpolate[succesful_interpolation, 0]
@@ -100,6 +100,8 @@ data_frame["trainID"] = idx_train_set
 ###############################################################################
 save_scores = parser.getboolean("parameters", "save_scores")
 output_directory = parser.get("directories", "output")
+output_directory = f"{output_directory}/{metric}"
+check.check_directory(output_directory, exit=False)
 
 for relative in relative_values:
 
@@ -118,14 +120,16 @@ for relative in relative_values:
         )
         #######################################################################
         # Save anomaly scores
-        output_directory = f"{output_directory}/{metric}"
-        check.check_directory(output_directory, exit=False)
-
-        anomaly_score_name = (
+        score_name = (
             f"{metric}_relative_{relative}_percentage_{percentage}"
+            f"_filter_{filter_lines}"
         )
 
-        save_to = f"{output_directory}/{anomaly_score_name}"
+        if filter_lines is True:
+            score_name = f"{score_name}_{velocity_filter}kms"
+            print(f"\n{score_name}\n")
+
+        save_to = f"{output_directory}/{score_name}"
 
         # save to data frame
         data_frame["anomalyScore"] = anomaly_score
