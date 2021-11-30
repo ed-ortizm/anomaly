@@ -106,7 +106,7 @@ class ReconstructionAnomalyScore:
 
         """
         c = cst.c * 1e-3  # [km/s]
-        z = velocity_filter / c
+        z = velocity_filter / c # filter width
 
         velocity_mask = self.wave.astype(np.bool)
 
@@ -143,10 +143,10 @@ class ReconstructionAnomalyScore:
             anomaly score of the input observation
         """
 
-        flux_wise_error = np.square(reconstruction - observation)
+        flux_wise_error = (reconstruction - observation) ** 2.0
 
-        if relative:
-            flux_wise_error *= 1.0 / (np.square(reconstruction) + epsilon)
+        if relative is True:
+            flux_wise_error *= 1.0 / (reconstruction ** 2.0 + epsilon)
 
         flux_wise_error = self._update_dimensions(flux_wise_error)
 
@@ -227,8 +227,8 @@ class ReconstructionAnomalyScore:
         number_anomalous_fluxes = int(0.01 * percentage * number_fluxes)
 
         largest_reconstruction_error_ids = np.argpartition(
-            flux_wise_error, -1 * number_anomalous_fluxes, axis=1
-        )[:, -1 * number_anomalous_fluxes :]
+            flux_wise_error, -number_anomalous_fluxes, axis=1
+        )[:, -number_anomalous_fluxes:]
 
         return largest_reconstruction_error_ids
 
