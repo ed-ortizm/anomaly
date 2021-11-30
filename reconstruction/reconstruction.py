@@ -127,7 +127,6 @@ for relative in relative_values:
 
         if filter_lines is True:
             score_name = f"{score_name}_{velocity_filter}kms"
-            print(f"\n{score_name}\n")
 
         save_to = f"{output_directory}/{score_name}"
 
