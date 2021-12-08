@@ -82,9 +82,6 @@ class ReconstructionAnomalyScore:
 
             observation = observation[:, velocity_mask]
             reconstruction = reconstruction[:, velocity_mask]
-            # print(f"\n Bold {velocity_mask.sum()} \t {np.sum(observation - reconstruction)}\n")
-            # print(f"Wave shape: {self.wave.shape}")
-            # sys.exit()
         #######################################################################
         if metric == "mse":
 
@@ -113,20 +110,15 @@ class ReconstructionAnomalyScore:
         z = velocity_filter / c # filter width
 
         velocity_mask = self.wave.astype(np.bool)
-        # print(f"\n {velocity_mask.sum()} \t {velocity_mask.shape}\n")
 
         for line in lines:
 
-            print(f"\n {line} \t {GALAXY_LINES[line]}")
             delta_wave = GALAXY_LINES[line] * z
-            # print(delta_wave)
             # move line to origin
             wave = self.wave - GALAXY_LINES[line]
             line_mask = (wave < -delta_wave) | (delta_wave < wave)
-            # print(f"line {line_mask.sum()} \t {line_mask.shape}")
             # update velocity mask
             velocity_mask *= line_mask
-            # print(f"velocity {velocity_mask.sum()} \t {velocity_mask.shape}")
 
         return velocity_mask
 
@@ -185,7 +177,6 @@ class ReconstructionAnomalyScore:
             anomaly score of the input observation
         """
 
-        reconstruction = self._reconstruct(observation)
         flux_wise_error = np.abs(reconstruction - observation)
 
         if relative:
