@@ -6,13 +6,20 @@ import tensorflow as tf
 
 ###############################################################################
 GALAXY_LINES = {
+    # EMISSION
     "OII_3727": 3727.0,
+    "H_delta_4102": 4102.0,
+    "H_gamma_4340": 4340.0,
     "H_beta_4861": 4861.0,
     "OIII_4959": 4959.0,
     "OIII_5007": 5007.0,
     "NII_6548": 6548.0,
     "H_alpha_6563": 6563.0,
-    "NII_6584": 6584,
+    "NII_6584": 6584.0,
+    "SII_6716": 6716.0,
+    "SII_6720": 6720.0,
+    "SII_6731": 6731.0,
+    # ABSORPTION
 }
 ###############################################################################
 class ReconstructionAnomalyScore:
@@ -143,6 +150,11 @@ class ReconstructionAnomalyScore:
         OUTPUT
             anomaly score of the input observation
         """
+
+        # the square of badly reconstructed spectra mig be larger than
+        # a float32
+        observation = observation.astype(dtype=float, copy=False)
+        reconstruction = reconstruction.astype(dtype=float, copy=False)
 
         flux_wise_error = (reconstruction - observation) ** 2.0
 
