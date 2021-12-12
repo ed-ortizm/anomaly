@@ -47,7 +47,7 @@ for filter in ["filter", "nofilter"]:
 
         #######################################################################
         # data_type = "normal"
-        for data_type in ["normal", "anomaly", "middle"]:
+        for data_type in ["anomaly"]: #["normal", "anomaly", "middle"]:
 
             observation_name = f"{filter}/{relative}/{data_type}/{data_type}_observation_{relative_name}_{filter_name}.npy"
 
@@ -81,3 +81,5 @@ for filter in ["filter", "nofilter"]:
                 fig.savefig(f"{save_to}/{fname}", transparent=False)
 
                 ax.cla()
+
+            plt.close()    

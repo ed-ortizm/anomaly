@@ -4,7 +4,8 @@
 *.csv
 *.log
 *.txt
-
+progress/images/*
+progress/analysis/*
 *.dat
 !data/line_wavelengths.dat
 *.png
