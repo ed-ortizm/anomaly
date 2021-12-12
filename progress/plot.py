@@ -29,7 +29,7 @@ def spectrum_plot(wave, flux_1, label_1, flux_2=None, label_2=None, alpha=0.5, f
 wave = np.load("analysis/wave.npy")
 ###############################################################################
 # filter = "filter"
-for filter in ["filter", "nofilter"]:
+for filter in ["filter"]: # ["filter", "nofilter"]:
 
     if filter == "filter":
         filter_name = "filter_True_100.0kms"
@@ -47,7 +47,7 @@ for filter in ["filter", "nofilter"]:
 
         #######################################################################
         # data_type = "normal"
-        for data_type in ["anomaly"]: #["normal", "anomaly", "middle"]:
+        for data_type in ["normal", "anomaly", "middle"]:
 
             observation_name = f"{filter}/{relative}/{data_type}/{data_type}_observation_{relative_name}_{filter_name}.npy"
 
@@ -77,9 +77,8 @@ for filter in ["filter", "nofilter"]:
                     os.makedirs(save_to)
 
                 fname=f"{i:05d}.png"
-                print(fname)
+                print(fname, end="\r")
                 fig.savefig(f"{save_to}/{fname}", transparent=False)
 
                 ax.cla()
-
-            plt.close()    
+            plt.close(fig) 

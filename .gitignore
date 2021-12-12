@@ -4,6 +4,7 @@
 *.csv
 *.log
 *.txt
+*.gz
 progress/images/*
 progress/analysis/*
 *.dat
