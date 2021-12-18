@@ -24,7 +24,7 @@ GALAXY_LINES = {
 ###############################################################################
 class ReconstructionAnomalyScore:
     """
-    Class for dealing with the outliers based on a generative model trained with
+    Class to deal with the outliers based on a generative model trained with
     tensorflow.keras
     """
 
@@ -59,17 +59,26 @@ class ReconstructionAnomalyScore:
 
             metric: name of the metric, mse, lp and so on
             observation: array with the origin of fluxes
+
             percentage: percentage of fluxes with the highest
                 reconstruction error to consider to compute
                 the anomaly score
+
             relative: whether or not the score is weigthed by the input
 
             lines: list with lines to discard to compute anomaly_score
-            filter_lines:
-            velocity_filter:
 
-            reconstruction_in_drive:
-            reconstruction
+            filter_lines: True indicates the score is computed with
+                lines filtered
+
+            velocity_filter: Doppler velocity to consider at the moment of
+                line filtering. It is in units of Km/s
+
+            reconstruction_in_drive: if True, there is no need to generate the
+                reconstruction of imput observation.
+                Comes in handy to analyse large array of observations.
+
+            reconstruction: the reconstruction of the input observations.
 
             epsilon: float value to avoid division by zero
 
