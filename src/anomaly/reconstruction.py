@@ -55,6 +55,8 @@ class ReconstructionAnomalyScore:
     ) -> np.array:
 
         """
+        Compute anomaly score according to metric input parameter
+
         PARAMETERS
 
             metric: name of the metric, mse, lp and so on
@@ -72,7 +74,8 @@ class ReconstructionAnomalyScore:
                 lines filtered
 
             velocity_filter: Doppler velocity to consider at the moment of
-                line filtering. It is in units of Km/s
+                line filtering. It is in units of Km/s.
+                DeltaWave = (v/c) * wave
 
             reconstruction_in_drive: if True, there is no need to generate the
                 reconstruction of imput observation.
@@ -107,56 +110,29 @@ class ReconstructionAnomalyScore:
             return anomaly_score
 
     ###########################################################################
-    def get_velocity_filter_mask(
-        self, lines: list, velocity_filter: float
-    ) -> np.array:
-
-        """
-        PARAMETERS
-            lines: list with lines to discard to compute anomaly_score
-            velocity_filter: wave = (v/c) * wave, ave in amstrong and
-                c in km/s
-
-        OUTPUT
-            velocity_mask: array of bools with the regions to discard
-
-        """
-        c = cst.c * 1e-3  # [km/s]
-        z = velocity_filter / c  # filter width
-
-        velocity_mask = self.wave.astype(np.bool)
-
-        for line in lines:
-
-            delta_wave = GALAXY_LINES[line] * z
-            # move line to origin
-            wave = self.wave - GALAXY_LINES[line]
-            line_mask = (wave < -delta_wave) | (delta_wave < wave)
-            # update velocity mask
-            velocity_mask *= line_mask
-
-        return velocity_mask
-
-    ###########################################################################
     def mse(
         self,
         observation: np.array,
         reconstruction: np.array,
         percentage: int,
         relative: bool,
-        epsilon,
+        epsilon: float,
     ) -> np.array:
 
         """
+        Compute Mean Squared Error between observation and reconstruction.
+
         PARAMETERS
             observation: array with the origin of fluxes
+            reconstruction: the reconstruction of the input observations.
             percentage: percentage of fluxes with the highest
                 reconstruction error to consider to compute
                 the anomaly score
             relative: whether or not the score is weigthed by the input
             epsilon: float value to avoid division by zero
+
         OUTPUT
-            anomaly score of the input observation
+            anomaly_scor:e of the input observation
         """
 
         # the square of badly reconstructed spectra mig be larger than
@@ -209,17 +185,72 @@ class ReconstructionAnomalyScore:
         return anomaly_score
 
     ###########################################################################
-    def _reconstruct(self, observation: np.array):
+    def get_velocity_filter_mask(
+        self, lines: list, velocity_filter: float
+    ) -> np.array:
 
-        return self.model.reconstruct(observation)
+        """
+        Compute array with filters for narrow emission lines
+        PARAMETERS
+
+            lines: list with lines to discard to compute anomaly_score.
+                Check VELOCITY_LINES dictionary at the begin in the document.
+            velocity_filter: Doppler velocity to consider at the moment of
+                line filtering. It is in units of Km/s.
+                DeltaWave = (v/c) * wave
+
+        OUTPUT
+
+            velocity_mask: array of bools with the regions to discard
+        """
+
+        c = cst.c * 1e-3  # [km/s]
+        alpha = velocity_filter / c  # filter width
+
+        velocity_mask = self.wave.astype(bool)
+
+        for line in lines:
+
+            delta_wave = GALAXY_LINES[line] * alpha
+            # move line to origin
+            wave = self.wave - GALAXY_LINES[line]
+            line_mask = (wave < -delta_wave) | (delta_wave < wave)
+            # update velocity mask
+            velocity_mask *= line_mask
+
+        return velocity_mask
 
     ###########################################################################
-    def _update_dimensions(self, x: "np.array") -> np.array:
+    def _get_mean_value(
+        self, flux_wise_error: np.array, percentage: int
+    ) -> np.array:
 
-        if x.ndim == 1:
-            x = x[np.newaxis, ...]
+        """
+        Compute mean value of the flux by flux anomaly score
 
-        return x
+        PARAMETERS
+            flux_wise_error: array with reconstruction errors
+                flux by flux
+            percentage: percentage of fluxes with the highest
+                reconstruction error to consider to compute
+                the anomaly score
+
+        OUTPUT
+
+            mean value of anomaly score of the input observation
+        """
+
+        largest_error_ids = self._get_reconstruction_error_ids(
+            flux_wise_error, percentage
+        )
+
+        anomaly_score = np.empty(largest_error_ids.shape)
+
+        for idx, reconstruction_id in enumerate(largest_error_ids):
+
+            anomaly_score[idx, :] = flux_wise_error[idx, reconstruction_id]
+
+        return np.mean(anomaly_score, axis=1)
 
     ###########################################################################
     def _get_reconstruction_error_ids(
@@ -227,7 +258,7 @@ class ReconstructionAnomalyScore:
     ) -> np.array:
 
         """
-        Computes the ids of the pixels with the largest reconstruction
+        Compute the ids of the pixels with the largest reconstruction
             errors. If percentage is 100, then it does nothing.
             If percentage is 30%, for instance, it returns the ids of
             30% of the pixels with the highest reconstruction errors.
@@ -253,31 +284,16 @@ class ReconstructionAnomalyScore:
         return largest_reconstruction_error_ids
 
     ###########################################################################
-    def _get_mean_value(
-        self, flux_wise_error: np.array, percentage: int
-    ) -> np.array:
+    def _reconstruct(self, observation: np.array):
 
-        """
-        PARAMETERS
-            flux_wise_error: array with reconstruction errors
-                flux by flux
-            percentage: percentage of fluxes with the highest
-                reconstruction error to consider to compute
-                the anomaly score
-        OUTPUT
-            mean anomaly score of the input observation
-        """
+        return self.model.reconstruct(observation)
 
-        reconstruction_error_ids = self._get_reconstruction_error_ids(
-            flux_wise_error, percentage
-        )
+    ###########################################################################
+    def _update_dimensions(self, x: np.array) -> np.array:
 
-        anomaly_score = np.empty(reconstruction_error_ids.shape)
+        if x.ndim == 1:
+            x = x[np.newaxis, ...]
 
-        for idx, reconstruction_id in enumerate(reconstruction_error_ids):
-
-            anomaly_score[idx, :] = flux_wise_error[idx, reconstruction_id]
-
-        return np.mean(anomaly_score, axis=1)
+        return x
 
     ###########################################################################
