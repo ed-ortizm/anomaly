@@ -12,6 +12,7 @@ from autoencoders.deterministic.autoencoder import AE
 from autoencoders.variational.autoencoder import VAE
 
 from sdss.superclasses import FileDirectory, ConfigurationFile
+
 ###############################################################################
 start_time = time.time()
 ###############################################################################

@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 
 from sdss.superclasses import FileDirectory
+
 ###############################################################################
 def save_directory(name_frame, analysis_directory):
 
@@ -28,6 +29,8 @@ def save_directory(name_frame, analysis_directory):
             save_to = f"{analysis_directory}/nofilter/norelative"
 
     return save_to
+
+
 ###############################################################################
 check = FileDirectory()
 ###############################################################################
@@ -57,7 +60,6 @@ analysis_directory = f"/home/edgar/anomaly/progress/analysis"
 check.check_directory(analysis_directory, exit=False)
 
 for frame_location in frames:
-
 
     data = pd.read_csv(frame_location, index_col="specobjid")
     data.sort_values(by=["anomalyScore"], inplace=True)
@@ -96,10 +98,13 @@ for frame_location in frames:
         check.check_directory(f"{save_to}/{object_type}", exit=False)
 
         np.save(
-            f"{save_to}/{object_type}/{object_type}_observation_{name_frame[:-7]}.npy", obs
+            f"{save_to}/{object_type}/{object_type}_observation_{name_frame[:-7]}.npy",
+            obs,
         )
         np.save(
-            f"{save_to}/{object_type}/{object_type}_reconstruction_{name_frame[:-7]}.npy", rec)
+            f"{save_to}/{object_type}/{object_type}_reconstruction_{name_frame[:-7]}.npy",
+            rec,
+        )
 
         np.save(
             f"{save_to}/score/{object_type}_score_{name_frame[:-7]}.npy", score

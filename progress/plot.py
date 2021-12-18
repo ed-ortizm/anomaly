@@ -5,7 +5,7 @@ import os
 wave = np.load("analysis/wave.npy")
 ###############################################################################
 # filter = "filter"
-for filter in ["nofilter"]: # ["filter", "nofilter"]:
+for filter in ["nofilter"]:  # ["filter", "nofilter"]:
 
     if filter == "filter":
         filter_name = "filter_True_100.0kms"
@@ -23,12 +23,11 @@ for filter in ["nofilter"]: # ["filter", "nofilter"]:
 
         #######################################################################
         # data_type = "normal"
-        for data_type in ["normal", "anomaly"]: # , "middle"]:
+        for data_type in ["normal", "anomaly"]:  # , "middle"]:
 
             observation_name = f"{filter}/{relative}/{data_type}/{data_type}_observation_{relative_name}_{filter_name}.npy"
 
             observation = np.load(f"analysis/{observation_name}")
-
 
             reconstruction_name = f"{filter}/{relative}/{data_type}/{data_type}_reconstruction_{relative_name}_{filter_name}.npy"
 
@@ -41,7 +40,7 @@ for filter in ["nofilter"]: # ["filter", "nofilter"]:
             # ax.set_xlabel(f"Wavelength $[\AA]$")
             # ax.set_ylabel(f"Normalize flux")
 
-            save_to=f"images/{filter}/{relative}/{data_type}"
+            save_to = f"images/{filter}/{relative}/{data_type}"
 
             for i in range(observation.shape[0]):
 
@@ -49,8 +48,8 @@ for filter in ["nofilter"]: # ["filter", "nofilter"]:
                 ax.set_ylabel(f"Normalize flux")
 
                 ax.plot(wave, observation[i], label="Observation")
-                ax.plot(wave, reconstruction[i],
-                    label="Reconstruction", alpha=0.7
+                ax.plot(
+                    wave, reconstruction[i], label="Reconstruction", alpha=0.7
                 )
 
                 ax.legend()
@@ -58,7 +57,7 @@ for filter in ["nofilter"]: # ["filter", "nofilter"]:
                 if os.path.exists(save_to) is False:
                     os.makedirs(save_to)
 
-                fname=f"{i:05d}.png"
+                fname = f"{i:05d}.png"
                 print(fname, end="\r")
                 fig.savefig(f"{save_to}/{fname}", transparent=False)
 

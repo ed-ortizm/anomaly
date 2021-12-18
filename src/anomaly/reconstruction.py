@@ -86,7 +86,6 @@ class ReconstructionAnomalyScore:
                 lines, velocity_filter
             )
 
-
             observation = observation[:, velocity_mask]
             reconstruction = reconstruction[:, velocity_mask]
         #######################################################################
@@ -114,7 +113,7 @@ class ReconstructionAnomalyScore:
 
         """
         c = cst.c * 1e-3  # [km/s]
-        z = velocity_filter / c # filter width
+        z = velocity_filter / c  # filter width
 
         velocity_mask = self.wave.astype(np.bool)
 
