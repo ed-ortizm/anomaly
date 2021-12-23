@@ -5,7 +5,7 @@ import os
 wave = np.load("analysis/wave.npy")
 ###############################################################################
 # filter = "filter"
-for filter in ["nofilter"]:  # ["filter", "nofilter"]:
+for filter in ["nofilter", "filter"]:  # ["filter", "nofilter"]:
 
     if filter == "filter":
         filter_name = "filter_True_100.0kms"

@@ -8,8 +8,7 @@ import pandas as pd
 
 from anomaly.reconstruction import ReconstructionAnomalyScore
 
-from autoencoders.deterministic.autoencoder import AE
-from autoencoders.variational.autoencoder import VAE
+from autoencoders.ae import AutoEncoder
 
 from sdss.superclasses import FileDirectory, ConfigurationFile
 
@@ -24,19 +23,12 @@ check = FileDirectory()
 configuration = ConfigurationFile()
 ###############################################################################
 # Load model
-model_type = parser.get("common", "model_type")
 model_directory = parser.get("directories", "model")
-
-if model_type == "ae":
-
-    model = AE.load(model_directory)
-
-elif model_type == "vae":
-
-    model = VAE.load(model_directory)
+model = AutoEncoder(reload = True, reload_from=model_directory)
 
 ###############################################################################
 # Load data
+print("Load observations")
 input_data_directory = parser.get("directories", "input")
 
 train_set_name = parser.get("files", "observation")
@@ -45,6 +37,7 @@ observation = np.load(f"{input_data_directory}/{train_set_name}")
 reconstruction_name = parser.get("files", "reconstruction")
 reconstruction_location = f"{model_directory}/{reconstruction_name}"
 
+print("Load reconstructions")
 reconstruction_in_drive = parser.getboolean(
     "parameters", "reconstruction_in_drive"
 )
@@ -61,31 +54,32 @@ else:
     reconstruction = np.load(reconstruction_location)
 ###############################################################################
 # Load class to compute scores
+print("Load anomaly analysis class")
 wave_name = parser.get("files", "grid")
 wave = np.load(f"{input_data_directory}/{wave_name}")
 
 analysis = ReconstructionAnomalyScore(model, wave)
 ###############################################################################
 # metric parameters
+print("Set parameters of metrics")
 score_items = parser.items("score")
 score_parameters = configuration.section_to_dictionary(score_items, [","])
 
 metric = score_parameters["metric"]
 
 relative_values = score_parameters["relative"]
-relative_values = [val.strip() == "True" for val in relative_values]
 
-percentage = score_parameters["percentage"]
-percentage_values = [int(value) for value in percentage]
+percentage_values = score_parameters["percentage"]
 #######################################################################
 lines_items = parser.items("lines")
 lines_parameters = configuration.section_to_dictionary(lines_items, [])
 
 lines = lines_parameters["lines"]
-filter_lines = lines_parameters["filter"] == "True"
-velocity_filter = float(lines_parameters["velocity"])
+filter_lines = lines_parameters["filter"]
+velocity_filter = lines_parameters["velocity"]
 ###############################################################################
 # specobjid to save anomaly scores in data frame
+print("Set meta data tracking")
 train_id_name = parser.get("files", "train_id")
 indexes_interpolate = np.load(f"{input_data_directory}/{train_id_name}")
 
@@ -107,6 +101,11 @@ check.check_directory(output_directory, exit=False)
 for relative in relative_values:
 
     for percentage in percentage_values:
+
+        print(
+            f"Filter:{filter_lines},Relative:{relative}, {percentage}%",
+            end="\n"
+        )
 
         anomaly_score = analysis.anomaly_score(
             metric=metric,
