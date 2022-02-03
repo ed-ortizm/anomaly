@@ -5,52 +5,35 @@ class AnalysisAnomalyScore:
     """"""
 
     ###########################################################################
-    def __init__(self, anomaly_scores: "2D numpy array"):
+    def __init__(self, anomaly_scores: np.array):
         """"""
         self.scores = anomaly_scores
 
     ###########################################################################
-    def get_percentiles(self, range: list = [0, 25, 55, 75, 99.9, 100]):
+    def get_percentiles(
+        self, range: list = [0, 25, 55, 75, 99.9, 100]
+    ) -> np.array:
 
         return np.percentile(self.scores, q=range)
 
     ###########################################################################
     def top_scores(
-        self,
-        number_scores: int,
-        anomalous=True,
-        # number_normal: "int",
-        # number_anomalies: "int",
-        # )->"[1D numpy array, 1D numpy array]":
-    ) -> "1D numpy array":
+        self, number_scores: int, anomalous: bool = True
+    ) -> np.array:
         """
         Find the most normal and most anomalous objecs
 
         PARAMETERS
-            anomaly_scores: outlier scores
-            number_normal: number of most normal objects
-            number_anomalies: number of most anomalous objects
 
-
-        Returns:
-            [normal_ids, anomalous_ids]: arrays with the location
-                indexes of the most normal and anomalous objects.
+        OUTPUTS
         """
-
-        # normal_ids = self._get_top_ids(number_normal, anomalous=False)
-
-        # anomalous_ids = self._get_top_ids(number_anomalies, anomalous=True)
-
-        # return [normal_ids, anomalous_ids]
 
         scores_ids = self._get_top_ids(number_scores, anomalous)
 
         return scores_ids
 
     ###########################################################################
-    def _get_top_ids(
-        self, number_objects: "int", anomalous: "bool"
-    ) -> "1D numpy array":
+    def _get_top_ids(self, number_objects: int, anomalous: bool) -> np.array:
 
         """
         Get the ids with the objects having the largest or smallest
@@ -67,15 +50,6 @@ class AnalysisAnomalyScore:
             objects_ids: ids of objects in the anomaly score array
 
         """
-
-        # score_ids = np.argpartition(
-        #     self.scores,
-        #     [number_objects, -1 * number_objects]
-        # )
-        # if anomalous:
-        #     objects_ids = score_ids[-1 * number_objects:]
-        # else:
-        #     objects_ids = score_ids[: number_objects]
 
         if anomalous:
             number_objects = -1 * number_objects

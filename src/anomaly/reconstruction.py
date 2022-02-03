@@ -210,7 +210,7 @@ class ReconstructionAnomalyScore:
         self,
         observation: np.array,
         reconstruction: np.array,
-        p:float,
+        p: float,
         percentage: int,
         relative: bool,
         epsilon: float,
@@ -240,13 +240,14 @@ class ReconstructionAnomalyScore:
         flux_diff = np.abs(reconstruction - observation) ** p
 
         if relative is True:
-            flux_diff *= 1.0 / (np.abs(reconstruction)**(1/p) + epsilon)
+            flux_diff *= 1.0 / (np.abs(reconstruction) ** (1 / p) + epsilon)
 
         flux_diff = self._update_dimensions(flux_diff)
 
         anomaly_score = self._get_mean_value(flux_diff, percentage)
 
         return anomaly_score
+
     ###########################################################################
     def get_velocity_filter_mask(
         self, lines: list, velocity_filter: float
@@ -347,7 +348,7 @@ class ReconstructionAnomalyScore:
         return largest_reconstruction_error_ids
 
     ###########################################################################
-    def _reconstruct(self, observation: np.array)-> np.array:
+    def _reconstruct(self, observation: np.array) -> np.array:
 
         return self.model.reconstruct(observation)
 

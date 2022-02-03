@@ -24,7 +24,7 @@ configuration = ConfigurationFile()
 ###############################################################################
 # Load model
 model_directory = parser.get("directories", "model")
-model = AutoEncoder(reload = True, reload_from=model_directory)
+model = AutoEncoder(reload=True, reload_from=model_directory)
 
 ###############################################################################
 # Load data
@@ -104,7 +104,7 @@ for relative in relative_values:
 
         print(
             f"Filter:{filter_lines},Relative:{relative}, {percentage}%",
-            end="\n"
+            end="\n",
         )
 
         anomaly_score = analysis.anomaly_score(
