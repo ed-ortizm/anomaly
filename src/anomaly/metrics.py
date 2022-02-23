@@ -32,28 +32,14 @@ class ReconstructionMetrics:
         Compute Mean Squared Error between observation and reconstruction.
 
         PARAMETERS
-            observation: array with the origin of fluxes
+            observation: array with the original of fluxes
             reconstruction: the reconstruction of the input observations.
 
         OUTPUT
             anomaly_score of the input observation
         """
 
-        # the square of badly reconstructed spectra mig be larger than
-        # a float32
-        observation = observation.astype(dtype=float, copy=False)
-        reconstruction = reconstruction.astype(dtype=float, copy=False)
-
-        flux_diff = (reconstruction - observation) ** 2.0
-
-        if self.relative is True:
-            flux_diff *= 1.0 / (reconstruction ** 2.0 + self.epsilon)
-
-        flux_diff = self._update_dimensions(flux_diff)
-
-        anomaly_score = self._get_mean_value(flux_diff, self.percentage)
-
-        return anomaly_score
+        return self.lp(observation, reconstruction, p=2)
 
     ###########################################################################
     def mad(
@@ -64,21 +50,14 @@ class ReconstructionMetrics:
 
         """
         PARAMETERS
-            observation: array with the origin of fluxes
+            observation: array with the original of fluxes
+            reconstruction: the reconstruction of the input observations.
+
         OUTPUT
-            anomaly score of the input observation
+            anomaly_score of the input observation
         """
 
-        flux_diff = np.abs(reconstruction - observation)
-
-        if self.relative:
-            flux_diff *= 1.0 / (np.abs(reconstruction) + self.epsilon)
-
-        flux_diff = self._update_dimensions(flux_diff)
-
-        anomaly_score = self._get_mean_value(flux_diff, self.percentage)
-
-        return anomaly_score
+        return self.lp(observation, reconstruction, p=1)
 
     ###########################################################################
     def lp(
@@ -94,6 +73,7 @@ class ReconstructionMetrics:
         PARAMETERS
             observation: array with the origin of fluxes
             reconstruction: the reconstruction of the input observations.
+            p:
 
         OUTPUT
             anomaly_score: of the input observation
@@ -128,6 +108,8 @@ class ReconstructionMetrics:
         PARAMETERS
             flux_diff: array with reconstruction errors
                 flux by flux
+            percentage: of fluxes with the highest contribution to the
+                anomaly score
 
         OUTPUT
 
@@ -160,6 +142,8 @@ class ReconstructionMetrics:
         PARAMETERS
             flux_diff: array with reconstruction errors
                 flux by flux
+            percentage: of fluxes with the highest contribution to the
+                anomaly score
         OUTPUT
             largest_reconstruction_error_ids: ids with the percentage
                 of pixels with the highest reconstruction errors
@@ -183,4 +167,3 @@ class ReconstructionMetrics:
         return x
 
     ###########################################################################
-###############################################################################
