@@ -21,8 +21,8 @@ GALAXY_LINES = {
     "SII_6731": 6731.0,
     # ABSORPTION
 }
-###############################################################################
-class ReconstructionAnomalyScore:
+##############################################################################
+class ReconstructionAnomalyScore(Metrics):
     """
     Class to deal with the outliers based on a generative model trained with
     tensorflow.keras
@@ -131,122 +131,6 @@ class ReconstructionAnomalyScore:
             return anomaly_score
 
     ###########################################################################
-    def mse(
-        self,
-        observation: np.array,
-        reconstruction: np.array,
-        percentage: int,
-        relative: bool,
-        epsilon: float,
-    ) -> np.array:
-
-        """
-        Compute Mean Squared Error between observation and reconstruction.
-
-        PARAMETERS
-            observation: array with the origin of fluxes
-            reconstruction: the reconstruction of the input observations.
-            percentage: percentage of fluxes with the highest
-                reconstruction error to consider to compute
-                the anomaly score
-            relative: whether or not the score is weigthed by the input
-            epsilon: float value to avoid division by zero
-
-        OUTPUT
-            anomaly_scor:e of the input observation
-        """
-
-        # the square of badly reconstructed spectra mig be larger than
-        # a float32
-        observation = observation.astype(dtype=float, copy=False)
-        reconstruction = reconstruction.astype(dtype=float, copy=False)
-
-        flux_diff = (reconstruction - observation) ** 2.0
-
-        if relative is True:
-            flux_diff *= 1.0 / (reconstruction ** 2.0 + epsilon)
-
-        flux_diff = self._update_dimensions(flux_diff)
-
-        anomaly_score = self._get_mean_value(flux_diff, percentage)
-
-        return anomaly_score
-
-    ###########################################################################
-    def mad(
-        self,
-        observation: np.array,
-        reconstruction: np.array,
-        percentage: int,
-        relative: bool,
-        epsilon: float,
-    ) -> np.array:
-
-        """
-        PARAMETERS
-            observation: array with the origin of fluxes
-            percentage: percentage of fluxes with the highest
-                reconstruction error to consider to compute
-                the anomaly score
-            relative: whether or not the score is weigthed by the input
-            epsilon: float value to avoid division by zero
-        OUTPUT
-            anomaly score of the input observation
-        """
-
-        flux_diff = np.abs(reconstruction - observation)
-
-        if relative:
-            flux_diff *= 1.0 / (np.abs(reconstruction) + epsilon)
-
-        flux_diff = self._update_dimensions(flux_diff)
-
-        anomaly_score = self._get_mean_value(flux_diff, percentage)
-
-        return anomaly_score
-
-    ###########################################################################
-    def lp(
-        self,
-        observation: np.array,
-        reconstruction: np.array,
-        p: float,
-        percentage: int,
-        relative: bool,
-        epsilon: float,
-    ) -> np.array:
-
-        """
-        Compute LP between observation and reconstruction.
-
-        PARAMETERS
-            observation: array with the origin of fluxes
-            reconstruction: the reconstruction of the input observations.
-            percentage: percentage of fluxes with the highest
-                reconstruction error to consider to compute
-                the anomaly score
-            relative: whether or not the score is weigthed by the input
-            epsilon: float value to avoid division by zero
-
-        OUTPUT
-            anomaly_score: of the input observation
-        """
-
-        # the square of badly reconstructed spectra mig be larger than
-        # a float32
-        observation = observation.astype(dtype=float, copy=False)
-        reconstruction = reconstruction.astype(dtype=float, copy=False)
-
-        flux_diff = np.abs(reconstruction - observation) ** p
-
-        if relative is True:
-            flux_diff *= 1.0 / (np.abs(reconstruction) ** (1 / p) + epsilon)
-
-        flux_diff = self._update_dimensions(flux_diff)
-
-        anomaly_score = self._get_mean_value(flux_diff, percentage)
-
-        return anomaly_score
 
     ###########################################################################
     def get_velocity_filter_mask(
@@ -285,79 +169,8 @@ class ReconstructionAnomalyScore:
         return velocity_mask
 
     ###########################################################################
-    def _get_mean_value(
-        self, flux_diff: np.array, percentage: int
-    ) -> np.array:
-
-        """
-        Compute mean value of the flux by flux anomaly score
-
-        PARAMETERS
-            flux_diff: array with reconstruction errors
-                flux by flux
-            percentage: percentage of fluxes with the highest
-                reconstruction error to consider to compute
-                the anomaly score
-
-        OUTPUT
-
-            mean value of anomaly score of the input observation
-        """
-
-        largest_error_ids = self._get_reconstruction_error_ids(
-            flux_diff, percentage
-        )
-
-        anomaly_score = np.empty(largest_error_ids.shape)
-
-        for idx, reconstruction_id in enumerate(largest_error_ids):
-
-            anomaly_score[idx, :] = flux_diff[idx, reconstruction_id]
-
-        return np.mean(anomaly_score, axis=1)
-
-    ###########################################################################
-    def _get_reconstruction_error_ids(
-        self, flux_diff: np.array, percentage: int
-    ) -> np.array:
-
-        """
-        Compute the ids of the pixels with the largest reconstruction
-            errors. If percentage is 100, then it does nothing.
-            If percentage is 30%, for instance, it returns the ids of
-            30% of the pixels with the highest reconstruction errors.
-
-        PARAMETERS
-            flux_diff: array with reconstruction errors
-                flux by flux
-            percentage: percentage of fluxes with the highest
-                reconstruction error to consider to compute
-                the anomaly score
-        OUTPUT
-            largest_reconstruction_error_ids: ids with the percentage
-                of pixels with the highest reconstruction errors
-        """
-
-        number_fluxes = flux_diff.shape[1]
-        number_anomalous_fluxes = int(0.01 * percentage * number_fluxes)
-
-        largest_reconstruction_error_ids = np.argpartition(
-            flux_diff, -number_anomalous_fluxes, axis=1
-        )[:, -number_anomalous_fluxes:]
-
-        return largest_reconstruction_error_ids
 
     ###########################################################################
     def _reconstruct(self, observation: np.array) -> np.array:
 
         return self.model.reconstruct(observation)
-
-    ###########################################################################
-    def _update_dimensions(self, x: np.array) -> np.array:
-
-        if x.ndim == 1:
-            x = x[np.newaxis, ...]
-
-        return x
-
-    ###########################################################################
