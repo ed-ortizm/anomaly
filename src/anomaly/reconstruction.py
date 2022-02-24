@@ -81,6 +81,7 @@ class ReconstructionAnomalyScore(ReconstructionMetrics):
 
         PARAMETERS
             observation: array with the origin of fluxes
+            p: power of lp metric
         OUTPUT
             anomaly_score: of the input observation
         """
@@ -148,6 +149,19 @@ class ReconstructionAnomalyScore(ReconstructionMetrics):
         lines: list,
         velocity_filter: float
     ) -> tuple:
+
+        """
+        PARAMETERS
+            observation: array with the origin of fluxes
+            lines: list with lines to discard to compute anomaly_score
+            velocity_filter: Doppler velocity to consider at the moment of
+                line filtering. It is in units of Km/s.
+                DeltaWave = (v/c) * wave
+
+        OUTPUTS
+            observation, reconstruction:
+                np.arrays with the filter if it applies
+        """
 
         reconstruction = self.reconstruct(observation)
 
