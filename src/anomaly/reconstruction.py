@@ -31,10 +31,9 @@ class ReconstructionAnomalyScore(ReconstructionMetrics):
 
     ###########################################################################
     def __init__(self,
-        metric: str,
-        #model: tf.keras.Model,
-        wave: np.array,
+        reconstruct_fucntion,
         lines: list = None,
+        wave: np.array,
         velocity_filter: float = None,
         percentage: int = 100,
         relative: bool = False,
@@ -42,29 +41,36 @@ class ReconstructionAnomalyScore(ReconstructionMetrics):
     ):
         """
         INPUTS
-            metric: name of the metric, mse, lp and so on
-            model: trained generative model with reconstruct method
+            reconstruct_fucntion: reconstruct method of trained
+                generative model
+
+            lines: list with lines to discard to compute anomaly_score
+            velocity_filter: Doppler velocity to consider at the moment of
+                line filtering. It is in units of Km/s.
+                DeltaWave = (v/c) * wave
             wave: common grid to spectra
+
             percentage: percentage of fluxes with the highest
                 reconstruction error to consider to compute
                 the anomaly score
             relative: whether or not the score is weigthed by the input
             epsilon: float value to avoid division by zero
-            lines: list with lines to discard to compute anomaly_score
-            velocity_filter: Doppler velocity to consider at the moment of
-                line filtering. It is in units of Km/s.
-                DeltaWave = (v/c) * wave
         """
 
-        # self.model = model
-        self.wave = wave
+        self.reconstruct = reconstruct_fucntion
+
+        filter_lines = lines != None
+
+        if filter_lines is True:
+
+            self.lines = lines
+            self.filter_lines = filter_lines
+            self.wave = wave
+            self.velocity_filter = velocity_filter
 
         super().__init__(percentage, relative, epsilon)
-
-        self.filter_lines = lines != None
-
     ###########################################################################
-    def anomaly_score(
+    def generalized_lp(
         self,
         observation: np.array,
         p: float=0.33,
@@ -79,32 +85,71 @@ class ReconstructionAnomalyScore(ReconstructionMetrics):
             anomaly_score: of the input observation
         """
 
-        observation, reconstruction = self.reconstruct_and_filter(observation)
+        observation, reconstruction = self.reconstruct_and_filter(
+            observation,
+            self.lines,
+            self.velocity_filter
+        )
 
-        if metric == "mse":
+        anomaly_score = super().lp(observation, reconstruction, p)
 
-            anomaly_score = super().mse(observation, reconstruction)
-
-            return anomaly_score
-        #######################################################################
-        if metric == "mad":
-
-            anomaly_score = self.super().(observation, reconstruction)
-
-            return anomaly_score
-        #######################################################################
-        if metric == "lp":
-
-            assert isscalar(p)
-
-            anomaly_score = super().lp(observation, reconstruction, p)
-
-            return anomaly_score
-
+        return anomaly_score.reshape(-1, 1)
     ###########################################################################
-    def reconstruct_and_filter(self, observation:np.array) -> tuple:
+    def maximum_absolute_deviation(
+        self,
+        observation: np.array,
+    ) -> np.array:
 
-        reconstruction = self._reconstruct(observation)
+        """
+        Compute anomaly score according to metric input parameter
+
+        PARAMETERS
+            observation: array with the origin of fluxes
+        OUTPUT
+            anomaly_score: of the input observation
+        """
+
+        observation, reconstruction = self.reconstruct_and_filter(
+            observation,
+            self.lines,
+            self.velocity_filter
+        )
+
+        anomaly_score = self.super().mad(observation, reconstruction)
+
+        return anomaly_score.reshape(-1, 1)
+    ###########################################################################
+    def mean_square_error(
+        self,
+        observation: np.array,
+    ) -> np.array:
+
+        """
+        Compute anomaly score according to metric input parameter
+
+        PARAMETERS
+            observation: array with the origin of fluxes
+        OUTPUT
+            anomaly_score: of the input observation
+        """
+
+        observation, reconstruction = self.reconstruct_and_filter(
+            observation,
+            self.lines,
+            self.velocity_filter
+        )
+
+        anomaly_score = super().mse(observation, reconstruction)
+
+        return anomaly_score.reshape(-1, 1)
+    ###########################################################################
+    def reconstruct_and_filter(self,
+        observation:np.array,
+        lines: list,
+        velocity_filter: float
+    ) -> tuple:
+
+        reconstruction = self.reconstruct(observation)
 
         if self.filter_lines is True:
 
@@ -151,8 +196,3 @@ class ReconstructionAnomalyScore(ReconstructionMetrics):
             velocity_mask *= line_mask
 
         return velocity_mask
-
-    ###########################################################################
-    def _reconstruct(self, observation: np.array) -> np.array:
-
-        return self.model.reconstruct(observation)
