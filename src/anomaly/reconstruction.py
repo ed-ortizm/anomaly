@@ -4,6 +4,7 @@ import numpy as np
 import scipy.constants as cst
 import tensorflow as tf
 
+from .metrics import ReconstructionMetrics
 ###############################################################################
 GALAXY_LINES = {
     # EMISSION
@@ -22,101 +23,81 @@ GALAXY_LINES = {
     # ABSORPTION
 }
 ##############################################################################
-class ReconstructionAnomalyScore(Metrics):
+class ReconstructionAnomalyScore(ReconstructionMetrics):
     """
     Class to deal with the outliers based on a generative model trained with
     tensorflow.keras
     """
 
     ###########################################################################
-    def __init__(self, model: tf.keras.Model, wave: np.array):
+    def __init__(self,
+        metric: str,
+        #model: tf.keras.Model,
+        wave: np.array,
+        lines: list = None,
+        velocity_filter: float = None,
+        percentage: int = 100,
+        relative: bool = False,
+        epsilon: float = 1e-3,
+    ):
         """
         INPUTS
+            metric: name of the metric, mse, lp and so on
             model: trained generative model with reconstruct method
             wave: common grid to spectra
+            percentage: percentage of fluxes with the highest
+                reconstruction error to consider to compute
+                the anomaly score
+            relative: whether or not the score is weigthed by the input
+            epsilon: float value to avoid division by zero
+            lines: list with lines to discard to compute anomaly_score
+            velocity_filter: Doppler velocity to consider at the moment of
+                line filtering. It is in units of Km/s.
+                DeltaWave = (v/c) * wave
         """
 
-        self.model = model
+        # self.model = model
         self.wave = wave
+
+        super().__init__(percentage, relative, epsilon)
+
+        self.filter_lines = lines != None
 
     ###########################################################################
     def anomaly_score(
         self,
-        metric: str,
         observation: np.array,
-        percentage: int,
-        relative: bool,
-        filter_lines: bool,
-        lines: list = None,
-        velocity_filter: float = None,
-        reconstruction_in_drive: bool = False,
-        reconstruction: np.array = None,
-        epsilon: float = 1e-3,
-        p: float = None,
+        metric: str,
     ) -> np.array:
+        pass
 
         """
         Compute anomaly score according to metric input parameter
 
         PARAMETERS
-
-            metric: name of the metric, mse, lp and so on
             observation: array with the origin of fluxes
-
-            percentage: percentage of fluxes with the highest
-                reconstruction error to consider to compute
-                the anomaly score
-
-            relative: whether or not the score is weigthed by the input
-
-            lines: list with lines to discard to compute anomaly_score
-
-            filter_lines: True indicates the score is computed with
-                lines filtered
-
-            velocity_filter: Doppler velocity to consider at the moment of
-                line filtering. It is in units of Km/s.
-                DeltaWave = (v/c) * wave
-
-            reconstruction_in_drive: if True, there is no need to generate the
-                reconstruction of imput observation.
-                Comes in handy to analyse large array of observations.
-
-            reconstruction: the reconstruction of the input observations.
-
-            epsilon: float value to avoid division by zero
-
-            p: value for lp metric
-
         OUTPUT
             anomaly_score: of the input observation
         """
 
-        if reconstruction_in_drive is False:
-            reconstruction = self._reconstruct(observation)
-        #######################################################################
         if filter_lines is True:
 
             velocity_mask = self.get_velocity_filter_mask(
                 lines, velocity_filter
             )
 
-            observation = observation[:, velocity_mask]
-            reconstruction = reconstruction[:, velocity_mask]
+        observation = observation[velocity_mask]
+        reconstruction = reconstruction[velocity_mask]
         #######################################################################
         if metric == "mse":
 
-            anomaly_score = self.mse(
-                observation, reconstruction, percentage, relative, epsilon
-            )
+            anomaly_score = self.mse(observation, reconstruction)
 
             return anomaly_score
         #######################################################################
         if metric == "mad":
 
-            anomaly_score = self.mad(
-                observation, reconstruction, percentage, relative, epsilon
-            )
+            anomaly_score = self.mad(observation, reconstruction)
 
             return anomaly_score
         #######################################################################
@@ -124,13 +105,9 @@ class ReconstructionAnomalyScore(Metrics):
 
             assert isscalar(p)
 
-            anomaly_score = self.lp(
-                observation, reconstruction, p, percentage, relative, epsilon
-            )
+            anomaly_score = self.lp(observation, reconstruction)
 
             return anomaly_score
-
-    ###########################################################################
 
     ###########################################################################
     def get_velocity_filter_mask(
@@ -167,8 +144,6 @@ class ReconstructionAnomalyScore(Metrics):
             velocity_mask *= line_mask
 
         return velocity_mask
-
-    ###########################################################################
 
     ###########################################################################
     def _reconstruct(self, observation: np.array) -> np.array:
