@@ -67,9 +67,8 @@ class ReconstructionAnomalyScore(ReconstructionMetrics):
     def anomaly_score(
         self,
         observation: np.array,
-        metric: str,
+        p: float=0.33,
     ) -> np.array:
-        pass
 
         """
         Compute anomaly score according to metric input parameter
@@ -80,24 +79,17 @@ class ReconstructionAnomalyScore(ReconstructionMetrics):
             anomaly_score: of the input observation
         """
 
-        if filter_lines is True:
+        observation, reconstruction = self.reconstruct_and_filter(observation)
 
-            velocity_mask = self.get_velocity_filter_mask(
-                lines, velocity_filter
-            )
-
-        observation = observation[velocity_mask]
-        reconstruction = reconstruction[velocity_mask]
-        #######################################################################
         if metric == "mse":
 
-            anomaly_score = self.mse(observation, reconstruction)
+            anomaly_score = super().mse(observation, reconstruction)
 
             return anomaly_score
         #######################################################################
         if metric == "mad":
 
-            anomaly_score = self.mad(observation, reconstruction)
+            anomaly_score = self.super().(observation, reconstruction)
 
             return anomaly_score
         #######################################################################
@@ -105,10 +97,25 @@ class ReconstructionAnomalyScore(ReconstructionMetrics):
 
             assert isscalar(p)
 
-            anomaly_score = self.lp(observation, reconstruction)
+            anomaly_score = super().lp(observation, reconstruction, p)
 
             return anomaly_score
 
+    ###########################################################################
+    def reconstruct_and_filter(self, observation:np.array) -> tuple:
+
+        reconstruction = self._reconstruct(observation)
+
+        if self.filter_lines is True:
+
+            velocity_mask = self.get_velocity_filter_mask(
+                lines, velocity_filter
+            )
+
+            observation = observation[:, velocity_mask]
+            reconstruction = reconstruction[:, velocity_mask]
+
+        return observation, reconstruction
     ###########################################################################
     def get_velocity_filter_mask(
         self, lines: list, velocity_filter: float
