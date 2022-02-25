@@ -36,7 +36,7 @@ class ReconstructionAnomalyScore(ReconstructionMetrics):
         reconstruct_fucntion,
         wave: np.array,
         lines: list = None,
-        velocity_filter: float = None,
+        velocity_filter: float = 50,
         percentage: int = 100,
         relative: bool = False,
         epsilon: float = 1e-3,
@@ -138,8 +138,10 @@ class ReconstructionAnomalyScore(ReconstructionMetrics):
             observation = observation[:, 0, velocity_mask, 0]
             reconstruction = reconstruction[:, velocity_mask]
 
+        observation = self.spectra_to_batch_image(observation)
         reconstruction = self.spectra_to_batch_image(reconstruction)
 
+        assert observation.ndim == 4
         assert reconstruction.ndim == 4
 
         return observation, reconstruction
