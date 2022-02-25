@@ -1,10 +1,13 @@
 import numpy as np
+
 ###############################################################################
 class ReconstructionMetrics:
     """
     Class with metrics to compute anomaly score based on a reconstruction
     """
-    def __init__(self,
+
+    def __init__(
+        self,
         percentage: int = 100,
         relative: bool = False,
         epsilon: float = 1e-3,
@@ -21,12 +24,9 @@ class ReconstructionMetrics:
         self.percentage = percentage
         self.relative = relative
         self.epsilon = epsilon
+
     ###########################################################################
-    def mse(
-        self,
-        observation: np.array,
-        reconstruction: np.array,
-    ) -> np.array:
+    def mse(self, observation: np.array, reconstruction: np.array) -> np.array:
 
         """
         Compute Mean Squared Error between observation and reconstruction.
@@ -42,11 +42,7 @@ class ReconstructionMetrics:
         return self.lp(observation, reconstruction, p=2)
 
     ###########################################################################
-    def mad(
-        self,
-        observation: np.array,
-        reconstruction: np.array,
-    ) -> np.array:
+    def mad(self, observation: np.array, reconstruction: np.array) -> np.array:
 
         """
         PARAMETERS
@@ -61,10 +57,7 @@ class ReconstructionMetrics:
 
     ###########################################################################
     def lp(
-        self,
-        observation: np.array,
-        reconstruction: np.array,
-        p: float=.33,
+        self, observation: np.array, reconstruction: np.array, p: float = 0.33
     ) -> np.array:
 
         """
@@ -88,7 +81,7 @@ class ReconstructionMetrics:
 
         if self.relative is True:
 
-            relative_weight = np.abs(reconstruction)**(1 / p) + self.epsilon
+            relative_weight = np.abs(reconstruction) ** (1 / p) + self.epsilon
             flux_diff *= 1.0 / relative_weight
 
         flux_diff = self._update_dimensions(flux_diff)

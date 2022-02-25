@@ -2,9 +2,10 @@ import sys
 
 import numpy as np
 import scipy.constants as cst
-import tensorflow as tf
+from skimage.color import gray2rgb  # convert spectra to 3 channels
 
 from .metrics import ReconstructionMetrics
+
 ###############################################################################
 GALAXY_LINES = {
     # EMISSION
@@ -30,10 +31,11 @@ class ReconstructionAnomalyScore(ReconstructionMetrics):
     """
 
     ###########################################################################
-    def __init__(self,
+    def __init__(
+        self,
         reconstruct_fucntion,
-        lines: list = None,
         wave: np.array,
+        lines: list = None,
         velocity_filter: float = None,
         percentage: int = 100,
         relative: bool = False,
@@ -58,96 +60,56 @@ class ReconstructionAnomalyScore(ReconstructionMetrics):
         """
 
         self.reconstruct = reconstruct_fucntion
+        self.wave = wave
 
+        self.lines = lines
         filter_lines = lines != None
-
-        if filter_lines is True:
-
-            self.lines = lines
-            self.filter_lines = filter_lines
-            self.wave = wave
-            self.velocity_filter = velocity_filter
+        self.filter_lines = filter_lines
+        self.velocity_filter = velocity_filter
 
         super().__init__(percentage, relative, epsilon)
+
     ###########################################################################
-    def generalized_lp(
-        self,
-        observation: np.array,
-        p: float=0.33,
+    def score(
+        self, observation: np.array, metric: str, p: float = 0.33
     ) -> np.array:
 
-        """
-        Compute anomaly score according to metric input parameter
+        # in case I pass a spectra with one dimension
+        # this line converts 1D array to (1, n_wave, 3)
+        # an image where each channel has the spectrun
+        observation = self.spectra_to_batch_image(observation)
 
-        PARAMETERS
-            observation: array with the origin of fluxes
-            p: power of lp metric
-        OUTPUT
-            anomaly_score: of the input observation
-        """
+        assert observation.ndim == 4
 
         observation, reconstruction = self.reconstruct_and_filter(
-            observation,
-            self.lines,
-            self.velocity_filter
+            observation, self.lines, self.velocity_filter
         )
 
-        anomaly_score = super().lp(observation, reconstruction, p)
+        # make compatible batch of spectra's images with metrics
+        observation = observation[:, 0, :, 0]
+        reconstruction = reconstruction[:, 0, :, 0]
+        if metric == "lp":
 
-        return anomaly_score.reshape(-1, 1)
+            assert np.isscalar(p)
+
+            anomaly_score = super().lp(observation, reconstruction, p)
+            return anomaly_score.reshape((-1, 1))
+
+        if metric == "mse":
+
+            anomaly_score = super().mse(observation, reconstruction)
+            return anomaly_score.reshape((-1, 1))
+
+        if metric == "mad":
+
+            anomaly_score = super().mad(observation, reconstruction)
+            return anomaly_score.reshape((-1, 1))
+
+        print(f"{metric} not implemented")
+
     ###########################################################################
-    def maximum_absolute_deviation(
-        self,
-        observation: np.array,
-    ) -> np.array:
-
-        """
-        Compute anomaly score according to metric input parameter
-
-        PARAMETERS
-            observation: array with the origin of fluxes
-        OUTPUT
-            anomaly_score: of the input observation
-        """
-
-        observation, reconstruction = self.reconstruct_and_filter(
-            observation,
-            self.lines,
-            self.velocity_filter
-        )
-
-        anomaly_score = self.super().mad(observation, reconstruction)
-
-        return anomaly_score.reshape(-1, 1)
-    ###########################################################################
-    def mean_square_error(
-        self,
-        observation: np.array,
-    ) -> np.array:
-
-        """
-        Compute anomaly score according to metric input parameter
-
-        PARAMETERS
-            observation: array with the origin of fluxes
-        OUTPUT
-            anomaly_score: of the input observation
-        """
-
-        observation, reconstruction = self.reconstruct_and_filter(
-            observation,
-            self.lines,
-            self.velocity_filter
-        )
-
-        anomaly_score = super().mse(observation, reconstruction)
-
-        return anomaly_score.reshape(-1, 1)
-    ###########################################################################
-    def reconstruct_and_filter(self,
-        observation:np.array,
-        lines: list,
-        velocity_filter: float
+    def reconstruct_and_filter(
+        self, observation: np.array, lines: list, velocity_filter: float
     ) -> tuple:
 
         """
@@ -163,7 +125,9 @@ class ReconstructionAnomalyScore(ReconstructionMetrics):
                 np.arrays with the filter if it applies
         """
 
-        reconstruction = self.reconstruct(observation)
+        # get (n_batch, flux). This is what is compatible with
+        # reconstruction method
+        reconstruction = self.reconstruct(observation[:, 0, :, 0])
 
         if self.filter_lines is True:
 
@@ -171,10 +135,15 @@ class ReconstructionAnomalyScore(ReconstructionMetrics):
                 lines, velocity_filter
             )
 
-            observation = observation[:, velocity_mask]
+            observation = observation[:, 0, velocity_mask, 0]
             reconstruction = reconstruction[:, velocity_mask]
 
+        reconstruction = self.spectra_to_batch_image(reconstruction)
+
+        assert reconstruction.ndim == 4
+
         return observation, reconstruction
+
     ###########################################################################
     def get_velocity_filter_mask(
         self, lines: list, velocity_filter: float
@@ -210,3 +179,29 @@ class ReconstructionAnomalyScore(ReconstructionMetrics):
             velocity_mask *= line_mask
 
         return velocity_mask
+
+    ###########################################################################
+    def spectra_to_batch_image(self, spectra):
+
+        # If a 1D spec is passed
+        if spectra.ndim == 1:
+            # get (1, flux)
+            gray_spectra = spectra[np.newaxis, ...]
+            # get (1, flux, 3)
+            spectra_image = gray2rgb(gray_spectra)
+            # get (n_batch, 1, flux, 3)
+            return spectra_image[np.newaxis]
+        # array of spectra: (n_batch, flux)
+        if spectra.ndim == 2:
+            # get (n_bacth, flux, 3)
+            gray_spectra = gray2rgb(spectra)
+            # get (n_bacth, 1, flux, 3)
+            return gray_spectra[:, np.newaxis, ...]
+        # if already image pass to (n_batch, 1, flux, 3)
+        if spectra.ndim == 3:
+            return spectra[np.newaxis, ...]
+
+        return spectra
+
+
+###############################################################################
