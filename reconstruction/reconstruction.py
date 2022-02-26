@@ -29,25 +29,6 @@ observation = np.load(f"{data_directory}/{observation_name}")
 meta_data_directory = parser.get("directory", "meta_data")
 wave_name = parser.get("files", "grid")
 wave = np.load(f"{meta_data_directory}/{wave_name}")
-# # #######################################################################
-# reconstruction_name = parser.get("files", "reconstruction")
-# reconstruction_location = f"{model_directory}/{reconstruction_name}"
-#
-# print("Load reconstructions")
-# reconstruction_in_drive = parser.getboolean(
-#     "parameters", "reconstruction_in_drive"
-# )
-#
-# if reconstruction_in_drive is False:
-#
-#     reconstruction = model.reconstruct(observation)
-#     np.save(reconstruction_location, reconstruction)
-#
-#     reconstruction_in_drive = True  # to avoid recomputing it in .mse
-#
-# else:
-#
-#     reconstruction = np.load(reconstruction_location)
 ###############################################################################
 # Load reconstruction function
 print(f"Load reconstruction function", end="\n")
@@ -58,6 +39,9 @@ reconstruct_function = model.reconstruct
 
 score_config = parser.items("score")
 score_config = configuration.section_to_dictionary(score_config, [",", "\n"])
+
+save_to = parser.get("directory", "output")
+check.check_directory(save_to, exit=False)
 
 for metric in score_config["metric"]:
 
@@ -80,7 +64,14 @@ for metric in score_config["metric"]:
                     )
                     ###########################################################
                     print("Detect anomalies", end="\n")
-                    anomaly.score(observation, metric)
+
+                    score = anomaly.score(observation, metric)
+                    score_name = (f"{metric}_percent_{percentage}")
+
+                    if relative is True:
+                        score_name = f"{score_name}_relative"
+
+                    np.save(f"{save_to}/{score_name}.npy", score)
                 else:
 
                     for velocity in score_config["velocity"]:
@@ -97,18 +88,15 @@ for metric in score_config["metric"]:
                         )
                         #######################################################
                         print("Detect anomalies", end="\n")
-                        anomaly.score(observation, metric)
-# # metric parameters
-# print("Set parameters of metrics")
-# score_items = parser.items("score")
-# score_parameters = configuration.section_to_dictionary(score_items, [","])
-#
-# metric = score_parameters["metric"]
-#
-# relative_values = score_parameters["relative"]
-#
-# percentage_values = score_parameters["percentage"]
-# #######################################################################
+
+                        score = anomaly.score(observation, metric)
+                        score_name = (f"{metric}_percent_{percentage}_filter")
+
+                        if relative is True:
+                            score_name = f"{score_name}_relative"
+
+                        np.save(f"{save_to}/{score_name}.npy", score)
+###############################################################################
 # ###############################################################################
 # # specobjid to save anomaly scores in data frame
 # print("Set meta data tracking")
@@ -172,6 +160,37 @@ for metric in score_config["metric"]:
 #
 #             np.save(f"{save_to}.npy", anomaly_score)
 ###############################################################################
+# # #######################################################################
+# reconstruction_name = parser.get("files", "reconstruction")
+# reconstruction_location = f"{model_directory}/{reconstruction_name}"
+#
+# print("Load reconstructions")
+# reconstruction_in_drive = parser.getboolean(
+#     "parameters", "reconstruction_in_drive"
+# )
+#
+# if reconstruction_in_drive is False:
+#
+#     reconstruction = model.reconstruct(observation)
+#     np.save(reconstruction_location, reconstruction)
+#
+#     reconstruction_in_drive = True  # to avoid recomputing it in .mse
+#
+# else:
+#
+#     reconstruction = np.load(reconstruction_location)
+
+# # metric parameters
+# print("Set parameters of metrics")
+# score_items = parser.items("score")
+# score_parameters = configuration.section_to_dictionary(score_items, [","])
+#
+# metric = score_parameters["metric"]
+#
+# relative_values = score_parameters["relative"]
+#
+# percentage_values = score_parameters["percentage"]
+# #######################################################################
 
 
 finish_time = time.time()
