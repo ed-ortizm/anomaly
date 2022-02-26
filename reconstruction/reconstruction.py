@@ -19,12 +19,6 @@ check = FileDirectory()
 # Handle configuration file
 configuration = ConfigurationFile()
 ###############################################################################
-# Load reconstruction function
-print(f"Load reconstruction function", end="\n")
-
-model_directory = parser.get("directory", "model")
-model = AutoEncoder(reload=True, reload_from=model_directory)
-
 ###############################################################################
 # Load data
 print("Load observations")
@@ -32,7 +26,10 @@ data_directory = parser.get("directory", "input")
 
 observation_name = parser.get("files", "observation")
 observation = np.load(f"{data_directory}/{observation_name}")
-# #######################################################################
+meta_data_directory = parser.get("directory", "meta_data")
+wave_name = parser.get("files", "grid")
+wave = np.load(f"{meta_data_directory}/{wave_name}")
+# # #######################################################################
 # reconstruction_name = parser.get("files", "reconstruction")
 # reconstruction_location = f"{model_directory}/{reconstruction_name}"
 #
@@ -51,14 +48,56 @@ observation = np.load(f"{data_directory}/{observation_name}")
 # else:
 #
 #     reconstruction = np.load(reconstruction_location)
-# ###############################################################################
-# # Load class to compute scores
-# print("Load anomaly analysis class")
-# wave_name = parser.get("files", "grid")
-# wave = np.load(f"{input_data_directory}/{wave_name}")
-#
-# analysis = ReconstructionAnomalyScore(model, wave)
-# ###############################################################################
+###############################################################################
+# Load reconstruction function
+print(f"Load reconstruction function", end="\n")
+
+model_directory = parser.get("directory", "model")
+model = AutoEncoder(reload=True, reload_from=model_directory)
+reconstruct_function = model.reconstruct
+
+score_config = parser.items("score")
+score_config = configuration.section_to_dictionary(score_config, [",", "\n"])
+
+for metric in score_config["metric"]:
+
+    for filter in score_config["filter"]:
+
+        for percentage in score_config["percentage"]:
+
+            for relative in score_config["relative"]:
+
+                if filter is False:
+
+                    ###########################################################
+                    anomaly = ReconstructionAnomalyScore(
+                        reconstruct_function,
+                        wave,
+                        lines=None,
+                        percentage=percentage,
+                        relative=relative,
+                        epsilon=1e-3,
+                    )
+                    ###########################################################
+                    print("Detect anomalies", end="\n")
+                    anomaly.score(observation, metric)
+                else:
+
+                    for velocity in score_config["velocity"]:
+
+                        #######################################################
+                        anomaly = ReconstructionAnomalyScore(
+                            reconstruct_function,
+                            wave,
+                            lines=score_config["lines"],
+                            velocity_filter=velocity,
+                            percentage=percentage,
+                            relative=relative,
+                            epsilon=1e-3,
+                        )
+                        #######################################################
+                        print("Detect anomalies", end="\n")
+                        anomaly.score(observation, metric)
 # # metric parameters
 # print("Set parameters of metrics")
 # score_items = parser.items("score")
@@ -70,12 +109,6 @@ observation = np.load(f"{data_directory}/{observation_name}")
 #
 # percentage_values = score_parameters["percentage"]
 # #######################################################################
-# lines_items = parser.items("lines")
-# lines_parameters = configuration.section_to_dictionary(lines_items, [])
-#
-# lines = lines_parameters["lines"]
-# filter_lines = lines_parameters["filter"]
-# velocity_filter = lines_parameters["velocity"]
 # ###############################################################################
 # # specobjid to save anomaly scores in data frame
 # print("Set meta data tracking")
