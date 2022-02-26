@@ -27,11 +27,11 @@ model = AutoEncoder(reload=True, reload_from=model_directory)
 
 ###############################################################################
 # Load data
-# print("Load observations")
-# input_data_directory = parser.get("directories", "input")
-#
-# train_set_name = parser.get("files", "observation")
-# observation = np.load(f"{input_data_directory}/{train_set_name}")
+print("Load observations")
+data_directory = parser.get("directory", "input")
+
+observation_name = parser.get("files", "observation")
+observation = np.load(f"{data_directory}/{observation_name}")
 # #######################################################################
 # reconstruction_name = parser.get("files", "reconstruction")
 # reconstruction_location = f"{model_directory}/{reconstruction_name}"
