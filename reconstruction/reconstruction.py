@@ -107,7 +107,7 @@ for metric in score_config["metric"]:
                             epsilon=1e-3,
                         )
                         #######################################################
-                        score_name = (f"{metric}_percent_{percentage}_filter")
+                        score_name = (f"{metric}_percent_{percentage}_filter_{velocity}kms")
 
                         if relative is True:
                             score_name = f"{score_name}_relative"
