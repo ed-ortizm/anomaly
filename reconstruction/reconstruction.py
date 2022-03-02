@@ -41,10 +41,10 @@ configuration = ConfigurationFile()
 print("Load observations")
 data_directory = parser.get("directory", "input")
 
-observation_name = parser.get("files", "observation")
+observation_name = parser.get("file", "observation")
 observation = np.load(f"{data_directory}/{observation_name}")
 meta_data_directory = parser.get("directory", "meta_data")
-wave_name = parser.get("files", "grid")
+wave_name = parser.get("file", "grid")
 wave = np.load(f"{meta_data_directory}/{wave_name}")
 ###############################################################################
 # set the number of cores to use per model in each worker
@@ -60,8 +60,9 @@ session = tf.compat.v1.Session(config=config)
 print(f"Load reconstruction function", end="\n")
 
 model_directory = parser.get("directory", "model")
-print(model_directory)
-# model = AutoEncoder(reload=True, reload_from=model_directory)
+model = parser.get("file", "model_id")
+model_location = f"{model_directory}/{model}"
+model = AutoEncoder(reload=True, reload_from=model_location)
 # reconstruct_function = model.reconstruct
 #
 # score_config = parser.items("score")
@@ -74,7 +75,7 @@ print(model_directory)
 # # specobjid to save anomaly scores in data frame
 # print("Track meta data", end="\n")
 #
-# idx_specobjid_name = parser.get("files", "specobjid")
+# idx_specobjid_name = parser.get("file", "specobjid")
 # idx_specobjid = np.load(f"{data_directory}/{idx_specobjid_name}")
 #
 # specobjid = idx_specobjid[:, 1]
@@ -149,7 +150,7 @@ print(model_directory)
 #                             np.save(f"{save_to}/{score_name}.npy", score)
 # ###############################################################################
 # # save to data frame
-# scores_frame_name = parser.get("files", "scores_frame")
+# scores_frame_name = parser.get("file", "scores_frame")
 # data_frame.to_csv(f"{save_to}/{scores_frame_name}", index=False)
 ###############################################################################
 session.close()
