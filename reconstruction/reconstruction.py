@@ -60,6 +60,7 @@ session = tf.compat.v1.Session(config=config)
 print(f"Load reconstruction function", end="\n")
 
 model_directory = parser.get("directory", "model")
+print(model_directory)
 # model = AutoEncoder(reload=True, reload_from=model_directory)
 # reconstruct_function = model.reconstruct
 #
