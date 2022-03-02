@@ -21,6 +21,7 @@ import time
 
 import numpy as np
 import pandas as pd
+import tensorflow as tf
 
 from anomaly.reconstruction import ReconstructionAnomalyScore
 from autoencoders.ae import AutoEncoder
@@ -46,10 +47,19 @@ meta_data_directory = parser.get("directory", "meta_data")
 wave_name = parser.get("files", "grid")
 wave = np.load(f"{meta_data_directory}/{wave_name}")
 ###############################################################################
-# # Load reconstruction function
-# print(f"Load reconstruction function", end="\n")
-#
-# model_directory = parser.get("directory", "model")
+# set the number of cores to use per model in each worker
+jobs = parser.getint("tf-session", "cores")
+config = tf.compat.v1.ConfigProto(
+    intra_op_parallelism_threads=jobs,
+    inter_op_parallelism_threads=jobs,
+    allow_soft_placement=True,
+    device_count={"CPU": jobs},
+)
+session = tf.compat.v1.Session(config=config)
+# Load reconstruction function
+print(f"Load reconstruction function", end="\n")
+
+model_directory = parser.get("directory", "model")
 # model = AutoEncoder(reload=True, reload_from=model_directory)
 # reconstruct_function = model.reconstruct
 #
@@ -140,6 +150,7 @@ wave = np.load(f"{meta_data_directory}/{wave_name}")
 # # save to data frame
 # scores_frame_name = parser.get("files", "scores_frame")
 # data_frame.to_csv(f"{save_to}/{scores_frame_name}", index=False)
-# ###############################################################################
-# finish_time = time.time()
-# print(f"Run time: {finish_time - start_time:.2f}")
+###############################################################################
+session.close()
+finish_time = time.time()
+print(f"Run time: {finish_time - start_time:.2f}")
