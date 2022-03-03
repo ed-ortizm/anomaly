@@ -44,14 +44,6 @@ if __name__ == "__main__":
     # Handle configuration file
     configuration = ConfigurationFile()
     ###########################################################################
-    ###########################################################################
-
-
-   #  score_config = parser.items("score")
-    # score_config = configuration.section_to_dictionary(score_config, [",", "\n"])
-
-
-    ###########################################################################
     # Load data
     print("Load observations")
 
@@ -107,7 +99,11 @@ if __name__ == "__main__":
     check.check_directory(share_output_directory, exit=False)
     ###########################################################################
     # Define grid for anomaly score function
-    
+    score_config = parser.items("score")
+    score_config = configuration.section_to_dictionary(
+        score_config, [",", "\n"]
+    )
+    parameters_grid = parallelReconstruction.get_grid(score_config)
     ###########################################################################
     number_processes = parser.getint("configuration", "jobs")
     cores_per_worker = parser.getint("configuration", "cores_per_worker")
@@ -128,7 +124,7 @@ if __name__ == "__main__":
         ),
     ) as pool:
 
-    pool.starmap(hyperSearch.compute_anomaly_score, grid)
+    pool.starmap(parallelReconstruction.compute_anomaly_score, grid)
     ###########################################################################
     save_score = parser.getboolean("score", "save_score")
     for metric in score_config["metric"]:
