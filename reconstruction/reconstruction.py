@@ -19,11 +19,15 @@ from configparser import ConfigParser, ExtendedInterpolation
 import sys
 import time
 
+import multiprocessing as mp
+from multiprocessing.sharedctypes import RawArray
+
 import numpy as np
 import pandas as pd
 import tensorflow as tf
 
 from anomaly.reconstruction import ReconstructionAnomalyScore
+from anomaly import parallelReconstruction
 from autoencoders.ae import AutoEncoder
 from sdss.superclasses import FileDirectory, ConfigurationFile
 ###############################################################################
@@ -40,82 +44,91 @@ if __name__ == "__main__":
     # Handle configuration file
     configuration = ConfigurationFile()
     ###########################################################################
+    ###########################################################################
+
+
+   #  score_config = parser.items("score")
+    # score_config = configuration.section_to_dictionary(score_config, [",", "\n"])
+
+
+    ###########################################################################
     # Load data
     print("Load observations")
-    data_directory = parser.get("directory", "input")
 
+    ###########################################################################
+    counter = mp.Value("i", 0)
+
+    ###########################################################################
+    data_directory = parser.get("directory", "input")
     observation_name = parser.get("file", "observation")
     observation = np.load(f"{data_directory}/{observation_name}")
+    share_observation = RawArray(
+        np.ctypeslib.as_ctypes_type(observatio.dtype), observation
+    )
+
+    observation_shape = observation.shape
+    del observation
+
+    ###########################################################################
     meta_data_directory = parser.get("directory", "meta_data")
     wave_name = parser.get("file", "grid")
     wave = np.load(f"{meta_data_directory}/{wave_name}")
-    ###########################################################################
-    # # set the number of cores to use per model in each worker
-    # jobs = parser.getint("tf-session", "cores")
-    # config = tf.compat.v1.ConfigProto(
-    #     intra_op_parallelism_threads=jobs,
-    #     inter_op_parallelism_threads=jobs,
-    #     allow_soft_placement=True,
-    #     device_count={"CPU": jobs},
-    # )
-    # session = tf.compat.v1.Session(config=config)
-    # Load reconstruction function
-    print(f"Load reconstruction function", end="\n")
+    share_wave = RawArray(
+        np.ctypeslib.as_ctypes_type(wave.dtype), wave
+    )
 
-    model_directory = parser.get("directory", "model")
-    model = parser.get("file", "model_id")
-    model_location = f"{model_directory}/{model}"
-    model = AutoEncoder(reload=True, reload_from=model_location)
-    reconstruct_function = model.reconstruct
-
-    score_config = parser.items("score")
-    score_config = configuration.section_to_dictionary(score_config, [",", "\n"])
-
-    save_to = parser.get("directory", "output")
-    check.check_directory(save_to, exit=False)
+    del wave
 
     ###########################################################################
-    # specobjid to save anomaly scores in data frame
     print("Track meta data", end="\n")
 
-    idx_specobjid_name = parser.get("file", "specobjid")
-    idx_specobjid = np.load(f"{data_directory}/{idx_specobjid_name}")
+    specobj_ids_name = parser.get("file", "specobjid")
+    specobj_ids = np.load(f"{data_directory}/{specobj_ids_name}")
 
-    specobjid = idx_specobjid[:, 1]
-    idx_train_set = idx_specobjid[:, 0]
+    specobj_id = idx_specobjid[:, 1]
+    share_specobj_id = RawArray(
+        np.ctypeslib.as_ctypes_type(share_specobj_id.dtype), share_specobj_id
+    )
+    del specobj_id
 
-    data_frame = pd.DataFrame()
+    train_id = specobj_ids[:, 0]
+    share_train_id = RawArray(
+        np.ctypeslib.as_ctypes_type(train_id.dtype), train_id
+    )
+    del train_id
 
-    data_frame["specobjid"] = specobjid
-    data_frame["trainID"] = idx_train_set
-    # ###########################################################################
-    # counter = mp.Value("i", 0)
+    ###########################################################################
+    model_directory = parser.get("directory", "model")
+    model = parser.get("file", "model_id")
+    share_model_directory = f"{model_directory}/{model}"
+    check.check_directory(share_model_directory, exit=True)
 
-   #  share_data = RawArray(np.ctypeslib.as_ctypes_type(array_dtype), array_size)
+    share_output_directory = parser.get("directory", "output")
+    check.check_directory(share_output_directory, exit=False)
+    ###########################################################################
+    # Define grid for anomaly score function
+    
+    ###########################################################################
+    number_processes = parser.getint("configuration", "jobs")
+    cores_per_worker = parser.getint("configuration", "cores_per_worker")
 
-   #  #######################################################################
-    # model_directory = parser.get("directory", "output")
-    # model_name_head = parser.get("file", "model")
-    # model_directory = f"{model_directory}/{model_name_head}"
-    # ###########################################################################
-    # number_processes = parser.getint("configuration", "number_processes")
-    # cores_per_worker = parser.getint("configuration", "cores_per_worker")
-    # with mp.Pool(
-    #     processes=number_processes,
-    #     initializer=hyperSearch.init_shared_data,
-    #     initargs=(
-            # counter,
-            # share_data,
-            # array_shape,
-            # f"{data_directory}/{data_name}",
-            # architecture,
-            # hyperparameters,
-            # model_directory,
-            # cores_per_worker,
-        # ),
-    # ) as pool:
+    with mp.Pool(
+        processes=number_processes,
+        initializer=parallelReconstruction.init_shared_data,
+        initargs=(
+            counter,
+            share_wave,
+            share_observation,
+            observation_shape,
+            share_specobj_id,
+            share_train_id,
+            shared_model_directory,
+            share_output_directory,
+            cores_per_worker,
+        ),
+    ) as pool:
 
-   #      pool.starmap(hyperSearch.build_and_train_model, grid)
+    pool.starmap(hyperSearch.compute_anomaly_score, grid)
     ###########################################################################
     save_score = parser.getboolean("score", "save_score")
     for metric in score_config["metric"]:

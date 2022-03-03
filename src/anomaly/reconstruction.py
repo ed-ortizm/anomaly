@@ -61,7 +61,7 @@ class ReconstructionAnomalyScore(ReconstructionMetrics):
         self.wave = wave
 
         self.lines = lines
-        filter_lines = lines != None
+        filter_lines = velocity_filter == 0
         self.filter_lines = filter_lines
         self.velocity_filter = velocity_filter
 
