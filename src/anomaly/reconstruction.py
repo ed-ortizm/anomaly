@@ -1,5 +1,3 @@
-import sys
-
 import numpy as np
 import scipy.constants as cst
 from skimage.color import gray2rgb  # convert spectra to 3 channels
