@@ -1,5 +1,5 @@
 
-# process base parallelism to train models in a grid of hyperparameters
+# process base parallelism to train models in a grid of parameters
 import itertools
 import multiprocessing as mp
 from multiprocessing.sharedctypes import RawArray
@@ -13,7 +13,10 @@ def to_numpy_array(array: RawArray, array_shape: tuple) -> np.array:
 
     array = np.ctypeslib.as_array(array)
 
-    return array.reshape(array_shape)
+    if array_shape != None
+        return array.reshape(array_shape)
+
+    return array
 
 
 ###############################################################################
@@ -21,6 +24,8 @@ def init_shared_data(
     share_counter: mp.Value,
     share_wave: RawArray,
     share_data: RawArray,
+    share_specobj_id: RawArray,
+    share_train_id: RawArray,
     data_shape: tuple,
     data_location: str,
     share_model_directory: str,
@@ -43,6 +48,8 @@ def init_shared_data(
     global counter
     global wave
     global data
+    global specobj_id
+    global train_id
 
     global model_directory
     global output_directory
@@ -51,9 +58,13 @@ def init_shared_data(
     global session
 
     counter = share_counter
-    wave =  share_wave
+    wave =  to_numpy_array(share_wave, None)
+
     observation = to_numpy_array(share_data, data_shape)
     observation[...] = np.load(data_location)
+
+    specobj_id = to_numpy_array(share_specobj_id, None)
+    train_id = to_numpy_array(train_id, None)
 
     model_directory = share_model_directory
     output_directory = share_output_directory
@@ -154,33 +165,41 @@ def compute_anomaly_score(
         counter.value += 1
 
     score = anomaly.score(observation, metric)
-    np.save_score(f"{output_directory}/{score_name}.npy", score)
+
+    score_with_ids = np.hstack(
+        (
+            specobj_id.reshape(-1,1),
+            train_id.reshape(-1,1),
+            score.reshape(-1,1))
+    )
+    np.save_score(f"{output_directory}/{score_name}.npy", score_with_ids)
     ###########################################################################
     session.close()
 ###############################################################################
-def get_parameters_grid(hyperparameters: dict) -> itertools.product:
+def get_parameters_grid(parameters: dict) -> itertools.product:
     """
-    Returns cartesian product of hyperparameters: reconstruction_weight,
+    Returns cartesian product of parameters: reconstruction_weight,
         mmd_weights, kld_weights, alpha and lambda
 
     PARAMETERS
-        hyperparameters:
+        parameters:
 
     OUTPUT
         parameters_grid: iterable with the cartesian product
             of input parameters
     """
-    for key, value in hyperparameters.items():
+    for key, value in parameters.items(): 20
+
 
         if type(value) != type([]):
-            hyperparameters[key] = [value]
+            parameters[key] = [value]
 
     grid = itertools.product(
-        hyperparameters["reconstruction_weight"],
-        hyperparameters["mmd_weight"],
-        hyperparameters["kld_weight"],
-        hyperparameters["alpha"],
-        hyperparameters["lambda"],
+        parameters["reconstruction_weight"],
+        parameters["mmd_weight"],
+        parameters["kld_weight"],
+        parameters["alpha"],
+        parameters["lambda"],
     )
 
     return grid
