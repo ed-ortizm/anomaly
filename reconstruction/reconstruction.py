@@ -26,7 +26,6 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 
-from anomaly.reconstruction import ReconstructionAnomalyScore
 from anomaly import parallelReconstruction
 from autoencoders.ae import AutoEncoder
 from sdss.superclasses import FileDirectory, ConfigurationFile
@@ -55,7 +54,7 @@ if __name__ == "__main__":
     observation_name = parser.get("file", "observation")
     observation = np.load(f"{data_directory}/{observation_name}")
     share_observation = RawArray(
-        np.ctypeslib.as_ctypes_type(observatio.dtype), observation
+        np.ctypeslib.as_ctypes_type(observation.dtype), observation.reshape(-1)
     )
 
     observation_shape = observation.shape
@@ -77,9 +76,9 @@ if __name__ == "__main__":
     specobj_ids_name = parser.get("file", "specobjid")
     specobj_ids = np.load(f"{data_directory}/{specobj_ids_name}")
 
-    specobj_id = idx_specobjid[:, 1]
+    specobj_id = specobj_ids[:, 1]
     share_specobj_id = RawArray(
-        np.ctypeslib.as_ctypes_type(share_specobj_id.dtype), share_specobj_id
+        np.ctypeslib.as_ctypes_type(specobj_id.dtype), specobj_id
     )
     del specobj_id
 
@@ -118,81 +117,20 @@ if __name__ == "__main__":
             observation_shape,
             share_specobj_id,
             share_train_id,
-            shared_model_directory,
+            share_model_directory,
             share_output_directory,
             cores_per_worker,
         ),
     ) as pool:
 
-    pool.starmap(parallelReconstruction.compute_anomaly_score, grid)
-    ###########################################################################
-    save_score = parser.getboolean("score", "save_score")
-    for metric in score_config["metric"]:
+        pool.starmap(
+        parallelReconstruction.compute_anomaly_score, parameters_grid
+    )
 
-        for filter in score_config["filter"]:
-
-            for percentage in score_config["percentage"]:
-
-                for relative in score_config["relative"]:
-
-                    if filter is False:
-
-                        #######################################################
-                        anomaly = ReconstructionAnomalyScore(
-                            reconstruct_function,
-                            wave,
-                            lines=None,
-                            percentage=percentage,
-                            relative=relative,
-                            epsilon=1e-3,
-                        )
-                        ###########################################################
-                        score_name = f"{metric}_percent_{percentage}"
-
-                        if relative is True:
-                            score_name = f"{score_name}_relative"
-
-                        print(f"Score: {score_name}", end="\r")
-
-                        score = anomaly.score(observation, metric)
-
-                        data_frame[f"{score_name}"] = score
-
-                        if save_score is True:
-                            np.save(f"{save_to}/{score_name}.npy", score)
-                    else:
-
-                        for velocity in score_config["velocity"]:
-
-                            #######################################################
-                            anomaly = ReconstructionAnomalyScore(
-                                reconstruct_function,
-                                wave,
-                                lines=score_config["lines"],
-                                velocity_filter=velocity,
-                                percentage=percentage,
-                                relative=relative,
-                                epsilon=1e-3,
-                            )
-                            #######################################################
-                            score_name = ( f"{metric}_percent_{percentage}_filter_{velocity}kms"
-                            )
-
-                            if relative is True:
-                                score_name = f"{score_name}_relative"
-
-                            print(f"Score: {score_name}", end="\r")
-
-                            score = anomaly.score(observation, metric)
-                            data_frame[f"{score_name}"] = score
-
-                            if save_score is True:
-                                np.save(f"{save_to}/{score_name}.npy", score)
-    ###############################################################################
-    # save to data frame
-    scores_frame_name = parser.get("file", "scores_frame")
-    data_frame.to_csv(f"{save_to}/{scores_frame_name}", index=False)
-    ###############################################################################
-    session.close()
+    # # save to data frame
+    # scores_frame_name = parser.get("file", "scores_frame")
+    # data_frame.to_csv(f"{save_to}/{scores_frame_name}", index=False)
+    # ###############################################################################
+    # session.close()
     finish_time = time.time()
     print(f"Run time: {finish_time - start_time:.2f}")

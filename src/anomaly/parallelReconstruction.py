@@ -7,6 +7,7 @@ from multiprocessing.sharedctypes import RawArray
 
 import numpy as np
 
+from anomaly.reconstruction import ReconstructionAnomalyScore
 from sdss.superclasses import FileDirectory
 ###############################################################################
 def to_numpy_array(array: RawArray, array_shape: tuple=None) -> np.array:
@@ -40,14 +41,13 @@ def init_shared_data(
         share_counter:
         share_observation:
         data_shape:
-        data_location:
         share_model_directory:
         share_output_directory:
 
     """
     global counter
     global wave
-    global data
+    global observation
     global specobj_id
     global train_id
 
@@ -61,10 +61,9 @@ def init_shared_data(
     wave =  to_numpy_array(share_wave)
 
     observation = to_numpy_array(share_observation, data_shape)
-    observation[...] = np.load(data_location)
 
     specobj_id = to_numpy_array(share_specobj_id)
-    train_id = to_numpy_array(train_id)
+    train_id = to_numpy_array(share_train_id)
 
     model_directory = share_model_directory
     output_directory = share_output_directory
@@ -78,7 +77,7 @@ def compute_anomaly_score(
     velocity_filter,
     percentage,
     relative,
-    epsilon=epsilon,
+    epsilon,
 ) -> None:
     """
     PARAMETERS
@@ -99,7 +98,7 @@ def compute_anomaly_score(
     session = tf.compat.v1.Session(config=config)
     ###########################################################################
     # Define reconstruction function
-    model = AutoEncoder(reload=True, reload_from=model_location)
+    model = AutoEncoder(reload=True, reload_from=model_directory)
     reconstruct_function = model.reconstruct
     ###########################################################################
     # Define anomaly score class
@@ -121,7 +120,7 @@ def compute_anomaly_score(
 
     if filter is True:
 
-        df_name = f"{df_name}_filter_{velocity}Kms"
+        df_name = f"{df_name}_filter_{velocity_filter}Kms"
 
     # define name of column that will contain the anomaly in the data_frame
     column_df_name = f"{percentage}"
@@ -140,7 +139,7 @@ def compute_anomaly_score(
     # Compute anomaly score
     with counter.get_lock():
 
-        print(f"Compute {score_name}", end="\r")
+        print(f"[{counter.value}] Compute {score_name}", end="\r")
 
         counter.value += 1
 
@@ -152,8 +151,8 @@ def compute_anomaly_score(
             train_id.reshape(-1,1),
             score.reshape(-1,1))
     )
-    save_to = {output_directory}/{df_name}
-    FileDirectory.check_directory(save_to, exit=False)
+    save_to = f"{output_directory}/{df_name}"
+    FileDirectory().check_directory(save_to, exit=False)
 
     np.save(f"{save_to}/{score_name}.npy", score_with_ids)
     ###########################################################################
@@ -170,14 +169,14 @@ def get_grid(parameters: dict) -> itertools.product:
     """
     for key, value in parameters.items():
 
-
         if type(value) != type([]):
+
             parameters[key] = [value]
 
     grid = itertools.product(
         parameters["metric"],
-        parameters["lines"],
-        parameters["velocity_filter"],
+        [parameters["lines"]], # I need the whole list of lines
+        parameters["velocity"],
         parameters["percentage"],
         parameters["relative"],
         parameters["epsilon"],
