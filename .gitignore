@@ -1,4 +1,5 @@
 # Heavy files
+data/*
 *.npy
 *.fits
 *.csv
