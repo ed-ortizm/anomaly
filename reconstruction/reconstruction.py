@@ -51,7 +51,7 @@ if __name__ == "__main__":
     counter = mp.Value("i", 0)
 
     ###########################################################################
-    data_directory = parser.get("directory", "input")
+    data_directory = parser.get("directory", "data")
     observation_name = parser.get("file", "observation")
     observation = np.load(f"{data_directory}/{observation_name}")
     share_observation = RawArray(
@@ -62,7 +62,7 @@ if __name__ == "__main__":
     del observation
 
     ###########################################################################
-    meta_data_directory = parser.get("directory", "meta_data")
+    meta_data_directory = parser.get("directory", "meta")
     wave_name = parser.get("file", "grid")
     wave = np.load(f"{meta_data_directory}/{wave_name}")
     share_wave = RawArray(
