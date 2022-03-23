@@ -116,7 +116,7 @@ def compute_anomaly_score(
     # metric_filter_velocity --> has: rel50, noRel75, ...
     df_name = f"{metric}"
 
-    filter = velocity_filter == 0
+    filter = velocity_filter != 0
 
     if filter is True:
 

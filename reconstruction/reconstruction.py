@@ -132,10 +132,6 @@ if __name__ == "__main__":
     # Save configuration file
     with open(f"{share_output_directory}/{parser_name}", "w") as configfile:
         parser.write(configfile)
-    # # save to data frame
-    # scores_frame_name = parser.get("file", "scores_frame")
-    # data_frame.to_csv(f"{save_to}/{scores_frame_name}", index=False)
-    # ###############################################################################
-    # session.close()
+    ###########################################################################
     finish_time = time.time()
     print(f"\nRun time: {finish_time - start_time:.2f}")
