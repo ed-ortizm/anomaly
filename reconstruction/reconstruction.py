@@ -24,10 +24,8 @@ from multiprocessing.sharedctypes import RawArray
 
 import numpy as np
 import pandas as pd
-import tensorflow as tf
 
 from anomaly import parallelReconstruction
-from autoencoders.ae import AutoEncoder
 from sdss.superclasses import FileDirectory, ConfigurationFile
 ###############################################################################
 if __name__ == "__main__":
@@ -47,7 +45,6 @@ if __name__ == "__main__":
     # Load data
     print("Load observations")
 
-    ###########################################################################
     counter = mp.Value("i", 0)
 
     ###########################################################################
@@ -90,9 +87,10 @@ if __name__ == "__main__":
     del train_id
 
     ###########################################################################
-    model_directory = parser.get("directory", "model")
+    # model_directory = parser.get("directory", "model")
     model = parser.get("file", "model_id")
-    share_model_directory = f"{model_directory}/{model}"
+    share_model_directory = f"{data_directory}/{model}"
+    # share_model_directory = f"{model_directory}/{model}"
     check.check_directory(share_model_directory, exit=True)
 
     share_output_directory = parser.get("directory", "output")
