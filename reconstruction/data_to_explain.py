@@ -26,10 +26,7 @@ print(f"Load anomaly scores", end="\n")
 percentage = parser.getint("configuration", "percentage")
 percentage /= 100
 
-print(percentage)
-
 save_to = parser.get("directory", "save_to")
-save_to = f"{save_to}/to_explain"
 check.check_directory(save_to, exit=False)
 
 for file in files_location:
@@ -45,8 +42,12 @@ for file in files_location:
     # score = score[sort_index]
 
     save_from_index = int(percentage * score.shape[0])
+
+    save_score_to = f"{save_to}/{name_file}"
+    check.check_directory(save_score_to, exit=False)
+
     np.save(
-        f"{save_to}/{name_file}.npy",
+        f"{save_score_to}/{name_file}.npy",
         score[sort_index][-save_from_index:]
     )
 
