@@ -31,6 +31,8 @@ def init_shared_data(
     share_model_directory: str,
     share_output_directory: str,
     share_cores_per_worker: int,
+    share_parser_name: str,
+    share_parser_directory: str,
 ) -> None:
     """
     Initialize worker to train different AEs
@@ -54,7 +56,9 @@ def init_shared_data(
     global output_directory
 
     global cores_per_worker
-    global session
+
+    global parser_name
+    global parser_directory
 
     counter = share_counter
     wave =  to_numpy_array(share_wave)
@@ -68,6 +72,9 @@ def init_shared_data(
     output_directory = share_output_directory
 
     cores_per_worker = share_cores_per_worker
+
+    parser_name = share_parser_name
+    parser_directory = share_parser_directory
 
 ###############################################################################
 def compute_anomaly_score(
@@ -154,6 +161,17 @@ def compute_anomaly_score(
     FileDirectory().check_directory(save_to, exit=False)
 
     np.save(f"{save_to}/{score_name}.npy", score_with_ids)
+
+    # save config file
+    with open(f"{parser_location}/{parser_name}", "r") as config_file:
+
+        config = config_file.read()
+
+    with open(f"{save_to}/{parser_name}", "w") as config_file:
+
+        config_file.write(config)
+
+
     ###########################################################################
     session.close()
 ###############################################################################

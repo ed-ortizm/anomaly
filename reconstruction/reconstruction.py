@@ -119,6 +119,8 @@ if __name__ == "__main__":
             share_model_directory,
             share_output_directory,
             cores_per_worker,
+            parser_name,
+            parser_directory,
         ),
     ) as pool:
 
@@ -127,9 +129,9 @@ if __name__ == "__main__":
     )
 
     ###########################################################################
-    # Save configuration file
-    with open(f"{share_output_directory}/{parser_name}", "w") as configfile:
-        parser.write(configfile)
+    # # Save configuration file
+    # with open(f"{share_output_directory}/{parser_name}", "w") as configfile:
+    #     parser.write(configfile)
     ###########################################################################
     finish_time = time.time()
     print(f"\nRun time: {finish_time - start_time:.2f}")
