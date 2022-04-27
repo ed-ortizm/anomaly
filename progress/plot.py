@@ -1,6 +1,7 @@
+import os
+
 import matplotlib.pyplot as plt
 import numpy as np
-import os
 
 wave = np.load("analysis/wave.npy")
 ###############################################################################
@@ -25,11 +26,17 @@ for filter in ["nofilter", "filter"]:  # ["filter", "nofilter"]:
         # data_type = "normal"
         for data_type in ["normal", "anomaly"]:  # , "middle"]:
 
-            observation_name = f"{filter}/{relative}/{data_type}/{data_type}_observation_{relative_name}_{filter_name}.npy"
+            observation_name = (
+                f"{filter}/{relative}/{data_type}/"
+                f"{data_type}_observation_{relative_name}_{filter_name}.npy"
+            )
 
             observation = np.load(f"analysis/{observation_name}")
 
-            reconstruction_name = f"{filter}/{relative}/{data_type}/{data_type}_reconstruction_{relative_name}_{filter_name}.npy"
+            reconstruction_name = (
+                f"{filter}/{relative}/{data_type}/"
+                f"{data_type}_reconstruction_{relative_name}_{filter_name}.npy"
+            )
 
             reconstruction = np.load(f"analysis/{reconstruction_name}")
 
@@ -44,8 +51,8 @@ for filter in ["nofilter", "filter"]:  # ["filter", "nofilter"]:
 
             for i in range(observation.shape[0]):
 
-                ax.set_xlabel(f"Wavelength $[\AA]$")
-                ax.set_ylabel(f"Normalize flux")
+                ax.set_xlabel("Wavelength $[\AA]$")
+                ax.set_ylabel("Normalize flux")
 
                 ax.plot(wave, observation[i], label="Observation")
                 ax.plot(
