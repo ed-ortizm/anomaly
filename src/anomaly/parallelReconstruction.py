@@ -1,20 +1,23 @@
-# process base parallelism to train models in a grid of parameters
+"""process base parallelism to compute reconstruction anomaly scores"""
 import itertools
 import multiprocessing as mp
 from multiprocessing.sharedctypes import RawArray
 
 
 import numpy as np
+import tensorflow as tf
 
 from anomaly.reconstruction import ReconstructionAnomalyScore
 from sdss.superclasses import FileDirectory
+from autoencoders.ae import AutoEncoder
+
 ###############################################################################
 def to_numpy_array(array: RawArray, array_shape: tuple=None) -> np.array:
     """Create a numpy array backed by a shared memory Array."""
 
     array = np.ctypeslib.as_array(array)
 
-    if array_shape != None:
+    if array_shape is not None:
         return array.reshape(array_shape)
 
     return array
@@ -78,21 +81,18 @@ def init_shared_data(
 
 ###############################################################################
 def compute_anomaly_score(
-    metric,
-    lines,
-    velocity_filter,
-    percentage,
-    relative,
-    epsilon,
+    metric: str,
+    lines: list,
+    velocity_filter: float,
+    percentage: int,
+    relative: bool,
+    epsilon: float,
 ) -> None:
     """
     PARAMETERS
         metric:
     """
     ###########################################################################
-    import tensorflow as tf
-    from autoencoders.ae import AutoEncoder
-
     # set the number of cores to use per model in each worker
     jobs = cores_per_worker
     config = tf.compat.v1.ConfigProto(
@@ -122,9 +122,9 @@ def compute_anomaly_score(
     # metric_filter_velocity --> has: rel50, noRel75, ...
     df_name = f"{metric}"
 
-    filter = velocity_filter != 0
+    have_to_filter = velocity_filter != 0
 
-    if filter is True:
+    if have_to_filter is True:
 
         df_name = f"{df_name}_filter_{velocity_filter}Kms"
 
@@ -163,7 +163,7 @@ def compute_anomaly_score(
     np.save(f"{save_to}/{score_name}.npy", score_with_ids)
 
     # save config file
-    with open(f"{parser_location}/{parser_name}", "r") as config_file:
+    with open(f"{parser_directory}/{parser_name}", "r") as config_file:
 
         config = config_file.read()
 
@@ -186,7 +186,7 @@ def get_grid(parameters: dict) -> itertools.product:
     """
     for key, value in parameters.items():
 
-        if type(value) != type([]):
+        if isinstance(value, list) is False:
 
             parameters[key] = [value]
 
