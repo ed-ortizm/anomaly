@@ -27,6 +27,7 @@ import pandas as pd
 
 from anomaly import parallelReconstruction
 from sdss.superclasses import FileDirectory, ConfigurationFile
+
 ###############################################################################
 if __name__ == "__main__":
 
@@ -62,9 +63,7 @@ if __name__ == "__main__":
     meta_data_directory = parser.get("directory", "meta")
     wave_name = parser.get("file", "grid")
     wave = np.load(f"{meta_data_directory}/{wave_name}")
-    share_wave = RawArray(
-        np.ctypeslib.as_ctypes_type(wave.dtype), wave
-    )
+    share_wave = RawArray(np.ctypeslib.as_ctypes_type(wave.dtype), wave)
 
     del wave
 
@@ -125,8 +124,8 @@ if __name__ == "__main__":
     ) as pool:
 
         pool.starmap(
-        parallelReconstruction.compute_anomaly_score, parameters_grid
-    )
+            parallelReconstruction.compute_anomaly_score, parameters_grid
+        )
 
     ###########################################################################
     # # Save configuration file

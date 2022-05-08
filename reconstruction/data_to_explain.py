@@ -6,6 +6,7 @@ import time
 import numpy as np
 
 from sdss.superclasses import FileDirectory, ConfigurationFile
+
 ###############################################################################
 start_time = time.time()
 ###############################################################################
@@ -48,7 +49,7 @@ for file in files_location:
 
     np.save(
         f"{save_score_to}/{name_file}.npy",
-        score[sort_index][-save_from_index:]
+        score[sort_index][-save_from_index:],
     )
 
 ###############################################################################

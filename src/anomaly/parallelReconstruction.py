@@ -12,7 +12,7 @@ from sdss.superclasses import FileDirectory
 from autoencoders.ae import AutoEncoder
 
 ###############################################################################
-def to_numpy_array(array: RawArray, array_shape: tuple=None) -> np.array:
+def to_numpy_array(array: RawArray, array_shape: tuple = None) -> np.array:
     """Create a numpy array backed by a shared memory Array."""
 
     array = np.ctypeslib.as_array(array)
@@ -64,7 +64,7 @@ def init_shared_data(
     global parser_directory
 
     counter = share_counter
-    wave =  to_numpy_array(share_wave)
+    wave = to_numpy_array(share_wave)
 
     observation = to_numpy_array(share_observation, data_shape)
 
@@ -78,6 +78,7 @@ def init_shared_data(
 
     parser_name = share_parser_name
     parser_directory = share_parser_directory
+
 
 ###############################################################################
 def compute_anomaly_score(
@@ -153,9 +154,10 @@ def compute_anomaly_score(
 
     score_with_ids = np.hstack(
         (
-            specobj_id.reshape(-1,1),
-            train_id.reshape(-1,1),
-            score.reshape(-1,1))
+            specobj_id.reshape(-1, 1),
+            train_id.reshape(-1, 1),
+            score.reshape(-1, 1),
+        )
     )
     save_to = f"{output_directory}/{df_name}"
     FileDirectory().check_directory(save_to, exit=False)
@@ -171,9 +173,10 @@ def compute_anomaly_score(
 
         config_file.write(config)
 
-
     ###########################################################################
     session.close()
+
+
 ###############################################################################
 def get_grid(parameters: dict) -> itertools.product:
     """
@@ -192,7 +195,7 @@ def get_grid(parameters: dict) -> itertools.product:
 
     grid = itertools.product(
         parameters["metric"],
-        [parameters["lines"]], # I need the whole list of lines
+        [parameters["lines"]],  # I need the whole list of lines
         parameters["velocity"],
         parameters["percentage"],
         parameters["relative"],
