@@ -84,10 +84,9 @@ if __name__ == "__main__":
     del train_id
 
     ###########################################################################
-    # model_directory = parser.get("directory", "model")
-    model = parser.get("file", "model_id")
-    share_model_directory = f"{data_directory}/{model}"
-    # share_model_directory = f"{model_directory}/{model}"
+    model_id = parser.get("file", "model_id")
+    share_model_directory = parser.get("directory", "model")
+    share_model_directory = f"{share_model_directory}/{model_id}"
     check.check_directory(share_model_directory, exit=True)
 
     share_output_directory = parser.get("directory", "output")
