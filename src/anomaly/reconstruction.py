@@ -1,3 +1,6 @@
+"""
+Module with functionality to compute anomaly scores based on reconstructions
+"""
 import numpy as np
 import scipy.constants as cst
 from skimage.color import gray2rgb  # convert spectra to 3 channels
@@ -202,6 +205,3 @@ class ReconstructionAnomalyScore(ReconstructionMetrics):
             return spectra[np.newaxis, ...]
 
         return spectra
-
-
-###############################################################################

@@ -1,3 +1,4 @@
+"""Get reconstruction based anomaly scores in parallel"""
 import os
 
 # Set environment variables to disable multithreading as users will probably
@@ -16,14 +17,11 @@ os.environ["NUMEXPR_NUM_THREADS"] = "1"
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 ###############################################################################
 from configparser import ConfigParser, ExtendedInterpolation
-import sys
 import time
 
 import multiprocessing as mp
 from multiprocessing.sharedctypes import RawArray
-
 import numpy as np
-import pandas as pd
 
 from anomaly import parallelReconstruction
 from sdss.superclasses import FileDirectory, ConfigurationFile
@@ -104,6 +102,8 @@ if __name__ == "__main__":
     ###########################################################################
     number_processes = parser.getint("configuration", "jobs")
     cores_per_worker = parser.getint("configuration", "cores_per_worker")
+
+    parser_directory = os.getcwd()
 
     with mp.Pool(
         processes=number_processes,
