@@ -1,5 +1,15 @@
 """Get reconstruction based anomaly scores in parallel"""
+from configparser import ConfigParser, ExtendedInterpolation
 import os
+import time
+
+import multiprocessing as mp
+from multiprocessing.sharedctypes import RawArray
+import numpy as np
+
+from anomaly import parallelReconstruction
+from sdss.utils.managefiles import FileDirectory
+from sdss.utils.configfile import ConfigurationFile
 
 # Set environment variables to disable multithreading as users will probably
 # want to set the number of cores to the max of their computer.
@@ -15,18 +25,7 @@ os.environ["NUMEXPR_NUM_THREADS"] = "1"
 # 2 = INFO and WARNING messages are not printed
 # 3 = INFO, WARNING, and ERROR messages are not printed
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
-###############################################################################
-from configparser import ConfigParser, ExtendedInterpolation
-import time
 
-import multiprocessing as mp
-from multiprocessing.sharedctypes import RawArray
-import numpy as np
-
-from anomaly import parallelReconstruction
-from sdss.superclasses import FileDirectory, ConfigurationFile
-
-###############################################################################
 if __name__ == "__main__":
 
     mp.set_start_method("spawn", force=True)
@@ -87,10 +86,10 @@ if __name__ == "__main__":
     model_id = parser.get("file", "model_id")
     share_model_directory = parser.get("directory", "model")
     share_model_directory = f"{share_model_directory}/{model_id}"
-    check.check_directory(share_model_directory, exit=True)
+    check.check_directory(share_model_directory, exit_program=True)
 
     share_output_directory = parser.get("directory", "output")
-    check.check_directory(share_output_directory, exit=False)
+    check.check_directory(share_output_directory, exit_program=False)
     ###########################################################################
     # Define grid for anomaly score function
     score_config = parser.items("score")

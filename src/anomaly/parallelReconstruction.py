@@ -8,7 +8,7 @@ import numpy as np
 import tensorflow as tf
 
 from anomaly.reconstruction import ReconstructionAnomalyScore
-from sdss.superclasses import FileDirectory
+from sdss.utils.managefiles import FileDirectory
 from autoencoders.ae import AutoEncoder
 
 ###############################################################################
@@ -160,7 +160,7 @@ def compute_anomaly_score(
         )
     )
     save_to = f"{output_directory}/{df_name}"
-    FileDirectory().check_directory(save_to, exit=False)
+    FileDirectory().check_directory(save_to, exit_program=False)
 
     np.save(f"{save_to}/{score_name}.npy", score_with_ids)
 

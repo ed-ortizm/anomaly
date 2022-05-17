@@ -1,8 +1,9 @@
+"""Module with utilities to analyse anomalous spectra"""
 import numpy as np
 
 
 class AnalysisAnomalyScore:
-    """"""
+    """Analysis of scores"""
 
     ###########################################################################
     def __init__(self, anomaly_scores: np.array):
@@ -11,8 +12,16 @@ class AnalysisAnomalyScore:
 
     ###########################################################################
     def get_percentiles(
-        self, range: list = [0, 25, 55, 75, 99.9, 100]
+        self, range_of_percentiles: list = None
     ) -> np.array:
+
+        """
+        Percentiles of anomaly scores. 10 means it will return the 10% of
+        anomaly scores close to zero
+        """
+
+        if range_of_percentiles is None:
+            range_of_percentiles = [0, 25, 55, 75, 99.9, 100]
 
         return np.percentile(self.scores, q=range)
 

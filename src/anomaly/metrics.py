@@ -1,3 +1,4 @@
+"""Metrics for outlier detection based on generative models"""
 import numpy as np
 
 ###############################################################################
