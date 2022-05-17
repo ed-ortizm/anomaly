@@ -126,9 +126,5 @@ if __name__ == "__main__":
         )
 
     ###########################################################################
-    # # Save configuration file
-    # with open(f"{share_output_directory}/{parser_name}", "w") as configfile:
-    #     parser.write(configfile)
-    ###########################################################################
     finish_time = time.time()
-    print(f"\nRun time: {finish_time - start_time:.2f}")
+    print(f"\n Run time: {finish_time - start_time:.2f}")
