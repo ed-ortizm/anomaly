@@ -34,16 +34,28 @@ relative = parser.getboolean("score", "relative")
 percentage = parser.get("score", "percentage")
 
 score_name = f"{metric}"
+
 if filter_velocity != 0:
-    score_name = f"{score_name}_filter_{filter_velocity}Kms_"
-if relative is True:
-    score_name = f"{score_name}_rel{percentage}"
+
+    score_name = f"{score_name}_filter_{filter_velocity}Kms"
+    # comply with personal naming convetion of directories
+    score_directory = f"{score_directory}/{score_name}"
+
 else:
+
+    # comply with personal naming convetion of directories
+    score_directory = f"{score_directory}/{score_name}"
+
+if relative is True:
+
+    score_name = f"{score_name}_rel{percentage}"
+
+else:
+
     score_name = f"{score_name}_noRel{percentage}"
 
 print(f"Load anomaly scores: {score_name}", end="\n")
 
-score_directory = f"{score_directory}/{metric}"
 score = np.load(f"{score_directory}/{score_name}.npy")
 
 ###############################################################################
