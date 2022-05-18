@@ -13,7 +13,7 @@ from sdss.utils.configfile import ConfigurationFile
 start_time = time.time()
 ###############################################################################
 parser = ConfigParser(interpolation=ExtendedInterpolation())
-config_file_name = "data_to_explain.ini"
+config_file_name = "top_scores.ini"
 parser.read(f"{config_file_name}")
 # Check files and directory
 check = FileDirectory()
