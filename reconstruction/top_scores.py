@@ -1,4 +1,4 @@
-#! /usr/bin/env python3
+"""Compute data frame with top anomalous and normal scores"""
 from configparser import ConfigParser, ExtendedInterpolation
 import time
 
@@ -6,7 +6,8 @@ import numpy as np
 import pandas as pd
 
 from anomaly.analysis import AnalysisAnomalyScore
-from sdss.superclasses import FileDirectory, MetaData
+from sdss.utils.managefiles import FileDirectory
+from sdss.metadata import MetaData
 
 ###############################################################################
 start_time = time.time()

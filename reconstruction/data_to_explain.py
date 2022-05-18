@@ -1,4 +1,4 @@
-"""Top normal and anomalous spectra"""
+"""Data frame and array with top normal and anomalous spectra"""
 from configparser import ConfigParser, ExtendedInterpolation
 import glob
 import time
@@ -19,7 +19,12 @@ check = FileDirectory()
 # Handle configuration file
 configuration = ConfigurationFile()
 ###############################################################################
-# Load data
+data_directory = parser.get("directory", "data")
+observation_file = parser.get("file", "observation")
+print(f"Load spectra: {observation_file}", end="\n")
+
+observation = np.load(f"{data_directory}/{observation_file}", mmap_mode="r")
+###############################################################################
 score_directory = parser.get("directory", "score")
 
 metric = parser.get("score", "metric")
@@ -35,26 +40,47 @@ if relative is True:
 else:
     score_name = f"{score_name}_noRel{percentage}"
 
+print(f"Load anomaly scores: {score_name}", end="\n")
+
 score_directory = f"{score_directory}/{metric}"
 score = np.load(f"{score_directory}/{score_name}.npy")
 
-print(f"Load anomaly scores: {score_name}", end="\n")
-
-# colums: ..., the actual score
-sort_index = np.argsort(score[:, 2])
-# score = score[sort_index]
-
-save_from_index = int(1000)
-
+###############################################################################
 save_score_to = parser.get("directory", "output")
-# check.check_directory(save_to, exit_program=False)
 save_score_to = f"{save_score_to}/{score_name}"
 check.check_directory(save_score_to, exit_program=False)
+# colums: ..., the actual score
+sort_index = np.argsort(score[:, 2])
+
+print("Fetch normal spectra",end="\n")
+number_normal = parser.getint("spectra", "top_normal")
+normal_spectra_index = sort_index[:number_normal]
 
 np.save(
-    f"{save_score_to}/{score_name}.npy",
-    score[sort_index][-save_from_index:],
+    f"{save_score_to}/top_{number_normal}_normal.npy",
+    observation[normal_spectra_index],
 )
+
+print("Fetch anomalies",end="\n")
+number_anomalies = parser.getint("spectra", "top_anomalies")
+anomalies_spectra_index = sort_index[-1 * number_anomalies:]
+np.save(
+    f"{save_score_to}/"
+    f"top_{number_anomalies}_anomalies.npy",
+    observation[anomalies_spectra_index],
+)
+###############################################################################
+
+
+# np.save(
+#     f"{save_score_to}/top_{number_normal}_normal_{score_name}.npy",
+#     score[sort_index][:number_normal],
+# )
+#
+# np.save(
+#     f"{save_score_to}/top_{number_anomalies}_anomalies_{score_name}.npy",
+#     score[sort_index][-1*number_anomalies:],
+# )
 
 ###############################################################################
 # Save configuration file
