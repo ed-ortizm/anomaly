@@ -108,8 +108,11 @@ anomalies_meta_data.to_csv(
 )
 ###############################################################################
 # Save configuration file
-print(f"Save relevant configuration files", end="\n")
-with open(f"{save_score_to}/{config_file_name}", "w") as configfile:
+print("Save relevant configuration files", end="\n")
+
+with open(
+    f"{save_score_to}/{config_file_name}", "w", encoding="utf8"
+) as configfile:
     parser.write(configfile)
 ###############################################################################
 other_config_files = glob.glob(f"{score_directory}/*.ini")
@@ -118,10 +121,12 @@ for file_location in other_config_files:
 
     other_config_file_name = file_location.split("/")[-1]
 
-    with open(file_location, "r") as file:
+    with open(file_location, "r", encoding="utf8") as file:
         other_config_file = file.read()
 
-    with open(f"{save_score_to}/{other_config_file_name}", "w") as file:
+    with open(
+    f"{save_score_to}/{other_config_file_name}", "w", encoding="utf8"
+    ) as file:
         file.write(other_config_file)
 ###############################################################################
 finish_time = time.time()
