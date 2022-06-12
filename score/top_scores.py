@@ -78,34 +78,28 @@ check.check_directory(save_score_to, exit_program=False)
 sort_index = np.argsort(score[:, 2])
 bin_specobjid = bin_specobjid[sort_index]
 
-print("Fetch normal spectra",end="\n")
+print("Fetch normal spectra", end="\n")
 number_normal = parser.getint("spectra", "top_normal")
 normal_spectra_index = sort_index[:number_normal]
 
-np.save(
-    f"{save_score_to}/top_normal.npy",
-    observation[normal_spectra_index],
-)
+np.save(f"{save_score_to}/top_normal.npy", observation[normal_spectra_index])
 specobjid_normal = bin_specobjid[:number_normal]
 
 normal_meta_data = meta_data.loc[specobjid_normal]
 normal_meta_data["score"] = score[sort_index, 2][:number_normal]
 normal_meta_data.to_csv(f"{save_score_to}/top_normal.csv.gz")
 ###############################################################################
-print("Fetch anomalies",end="\n")
+print("Fetch anomalies", end="\n")
 number_anomalies = parser.getint("spectra", "top_anomalies")
-anomalies_spectra_index = sort_index[-1 * number_anomalies:]
+anomalies_spectra_index = sort_index[-1 * number_anomalies :]
 np.save(
-    f"{save_score_to}/top_anomalies.npy",
-    observation[anomalies_spectra_index],
+    f"{save_score_to}/top_anomalies.npy", observation[anomalies_spectra_index]
 )
-specobjid_anomalies = bin_specobjid[-1 * number_anomalies:]
+specobjid_anomalies = bin_specobjid[-1 * number_anomalies :]
 
 anomalies_meta_data = meta_data.loc[specobjid_anomalies]
-anomalies_meta_data["score"] = score[sort_index, 2][-1 * number_anomalies:]
-anomalies_meta_data.to_csv(
-    f"{save_score_to}/top_anomalies.csv.gz"
-)
+anomalies_meta_data["score"] = score[sort_index, 2][-1 * number_anomalies :]
+anomalies_meta_data.to_csv(f"{save_score_to}/top_anomalies.csv.gz")
 ###############################################################################
 # Save configuration file
 print("Save relevant configuration files", end="\n")
@@ -125,7 +119,7 @@ for file_location in other_config_files:
         other_config_file = file.read()
 
     with open(
-    f"{save_score_to}/{other_config_file_name}", "w", encoding="utf8"
+        f"{save_score_to}/{other_config_file_name}", "w", encoding="utf8"
     ) as file:
         file.write(other_config_file)
 ###############################################################################

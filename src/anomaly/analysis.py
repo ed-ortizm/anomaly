@@ -11,9 +11,7 @@ class AnalysisAnomalyScore:
         self.scores = anomaly_scores
 
     ###########################################################################
-    def get_percentiles(
-        self, range_of_percentiles: list = None
-    ) -> np.array:
+    def get_percentiles(self, range_of_percentiles: list = None) -> np.array:
 
         """
         Percentiles of anomaly scores. 10 means it will return the 10% of

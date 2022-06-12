@@ -1,6 +1,8 @@
 """
 Module with functionality to compute anomaly scores based on reconstructions
 """
+import sys
+
 import numpy as np
 import scipy.constants as cst
 from skimage.color import gray2rgb  # convert spectra to 3 channels
@@ -107,6 +109,7 @@ class ReconstructionAnomalyScore(ReconstructionMetrics):
             return anomaly_score.reshape((-1, 1))
 
         print(f"{metric} not implemented")
+        sys.exit()
 
     ###########################################################################
     def reconstruct_and_filter(
