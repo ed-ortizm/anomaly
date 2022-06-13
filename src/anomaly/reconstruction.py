@@ -76,6 +76,7 @@ class ReconstructionAnomalyScore(ReconstructionMetrics):
     def score(
         self, observation: np.array, metric: str, p: float = 0.33
     ) -> np.array:
+        """Compute reconstruction error """
 
         # in case I pass a spectra with one dimension
         # this line converts 1D array to (1, n_wave, 3)
@@ -187,7 +188,14 @@ class ReconstructionAnomalyScore(ReconstructionMetrics):
         return velocity_mask
 
     ###########################################################################
-    def spectra_to_batch_image(self, spectra):
+    @staticmethod
+    def spectra_to_batch_image(spectra):
+        """
+        Convert spectra to a batch of RGB images where the height
+        of an spectrum's image is 1. The output shae will be:
+        (batch_id, 1, flux, 3)
+
+        """
 
         # If a 1D spec is passed
         if spectra.ndim == 1:
