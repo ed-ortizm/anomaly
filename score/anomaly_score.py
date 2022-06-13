@@ -1,5 +1,6 @@
 """Get reconstruction based anomaly scores in parallel"""
 from configparser import ConfigParser, ExtendedInterpolation
+import glob
 import os
 import time
 
@@ -88,8 +89,22 @@ if __name__ == "__main__":
     share_model_directory = f"{share_model_directory}/{model_id}"
     check.check_directory(share_model_directory, exit_program=True)
 
-    share_output_directory = parser.get("directory", "output")
-    check.check_directory(share_output_directory, exit_program=False)
+    output_directory = parser.get("directory", "output")
+    check.check_directory(output_directory, exit_program=False)
+
+    score_runs = glob.glob(f"{output_directory}/*/")
+
+    if len(score_runs) == 0:
+
+        run = "00000"
+
+    else:
+
+        runs = [int(run.split("/")[-2]) for run in score_runs]
+        run = f"{max(runs)+1:05d}"
+
+    output_directory = f"{output_directory}/{run}"
+    check.check_directory(f"{output_directory}", exit_program=False)
     ###########################################################################
     # Define grid for anomaly score function
     score_config = parser.items("score")
@@ -114,7 +129,7 @@ if __name__ == "__main__":
             share_specobj_id,
             share_train_id,
             share_model_directory,
-            share_output_directory,
+            output_directory,
             cores_per_worker,
             parser_name,
             parser_directory,
