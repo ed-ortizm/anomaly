@@ -92,7 +92,7 @@ if __name__ == "__main__":
     output_directory = parser.get("directory", "output")
     check.check_directory(output_directory, exit_program=False)
 
-    score_runs = glob.glob(f"{output_directory}/*/")
+    score_runs = glob.glob(f"{output_directory}/[0-9]*[0-9]/")
 
     if len(score_runs) == 0:
 
