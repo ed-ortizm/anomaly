@@ -110,21 +110,22 @@ class ReconstructionMetrics:
             mean value of anomaly score of the input observation
         """
 
-        largest_error_ids = self._get_reconstruction_error_ids(
+        smallest_error_ids = self._get_reconstruction_error_ids(
             flux_diff, percentage
         )
 
-        anomaly_score = np.empty(largest_error_ids.shape)
+        anomaly_score = np.empty(smallest_error_ids.shape)
 
-        for idx, reconstruction_id in enumerate(largest_error_ids):
+        for idx, reconstruction_id in enumerate(smallest_error_ids):
 
             anomaly_score[idx, :] = flux_diff[idx, reconstruction_id]
 
         return np.mean(anomaly_score, axis=1)
 
     ###########################################################################
+    @staticmethod
     def _get_reconstruction_error_ids(
-        self, flux_diff: np.array, percentage: int
+        flux_diff: np.array, percentage: int
     ) -> np.array:
 
         """
@@ -144,16 +145,17 @@ class ReconstructionMetrics:
         """
 
         number_fluxes = flux_diff.shape[1]
-        number_anomalous_fluxes = int(0.01 * percentage * number_fluxes)
+        number_fluxes = int(0.01 * percentage * number_fluxes)
 
-        largest_reconstruction_error_ids = np.argpartition(
-            flux_diff, -number_anomalous_fluxes, axis=1
-        )[:, -number_anomalous_fluxes:]
+        smallest_reconstruction_error_ids = np.argpartition(
+            flux_diff, number_fluxes, axis=1
+        )[:, :number_fluxes]
 
-        return largest_reconstruction_error_ids
+        return smallest_reconstruction_error_ids
 
     ###########################################################################
-    def _update_dimensions(self, x: np.array) -> np.array:
+    @staticmethod
+    def _update_dimensions(x: np.array) -> np.array:
 
         if x.ndim == 1:
             x = x[np.newaxis, ...]
