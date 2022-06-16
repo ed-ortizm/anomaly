@@ -145,13 +145,21 @@ class ReconstructionMetrics:
         """
 
         number_fluxes = flux_diff.shape[1]
-        number_fluxes = int(0.01 * percentage * number_fluxes)
 
-        smallest_reconstruction_error_ids = np.argpartition(
+        if percentage != 100:
+
+            number_fluxes = int(0.01 * percentage * number_fluxes)
+
+        else:
+
+            number_fluxes -= 1
+
+        smallest_residuals_ids = np.argpartition(
             flux_diff, number_fluxes, axis=1
         )[:, :number_fluxes]
 
-        return smallest_reconstruction_error_ids
+
+        return smallest_residuals_ids
 
     ###########################################################################
     @staticmethod
