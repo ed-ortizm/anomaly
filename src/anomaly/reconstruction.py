@@ -7,7 +7,7 @@ import numpy as np
 import scipy.constants as cst
 from skimage.color import gray2rgb  # convert spectra to 3 channels
 
-from .metrics import ReconstructionMetrics
+from anomaly.metrics import ReconstructionMetrics
 
 ###############################################################################
 GALAXY_LINES = {
@@ -107,6 +107,11 @@ class ReconstructionAnomalyScore(ReconstructionMetrics):
         if metric == "mad":
 
             anomaly_score = super().mad(observation, reconstruction)
+            return anomaly_score.reshape((-1, 1))
+
+        if metric == "cosine":
+
+            anomaly_score = super().cosine(observation, reconstruction)
             return anomaly_score.reshape((-1, 1))
 
         print(f"{metric} not implemented")

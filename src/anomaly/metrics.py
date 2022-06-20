@@ -26,7 +26,37 @@ class ReconstructionMetrics:
         self.relative = relative
         self.epsilon = epsilon
 
-    ###########################################################################
+    @staticmethod
+    def cosine(
+        observation: np.array, reconstruction: np.array
+    ) -> np.array:
+
+        """
+        Compute cosine distance between observation and reconstruction
+
+        PARAMETERS
+            observation: array with the origin of fluxes
+            reconstruction: the reconstruction of the input observations.
+            p:
+
+        OUTPUT
+            anomaly_score: of the input observation
+        """
+
+        observation = observation.astype(dtype=float)
+        reconstruction = reconstruction.astype(dtype=float)
+
+        dot_product = np.sum(observation*reconstruction, axis=1)
+
+        observation_norm = np.linalg.norm(observation, axis=1)
+        reconstruction_norm = np.linalg.norm(reconstruction, axis=1)
+
+        anomaly_score = dot_product/(observation_norm*reconstruction_norm)
+
+        anomaly_score = 1 - anomaly_score
+
+        return anomaly_score
+
     def mse(self, observation: np.array, reconstruction: np.array) -> np.array:
 
         """
@@ -42,7 +72,6 @@ class ReconstructionMetrics:
 
         return self.lp(observation, reconstruction, p=2)
 
-    ###########################################################################
     def mad(self, observation: np.array, reconstruction: np.array) -> np.array:
 
         """
@@ -56,7 +85,6 @@ class ReconstructionMetrics:
 
         return self.lp(observation, reconstruction, p=1)
 
-    ###########################################################################
     def lp(
         self, observation: np.array, reconstruction: np.array, p: float = 0.33
     ) -> np.array:
@@ -75,8 +103,8 @@ class ReconstructionMetrics:
 
         # the square of badly reconstructed spectra mig be larger than
         # a float32
-        observation = observation.astype(dtype=float, copy=False)
-        reconstruction = reconstruction.astype(dtype=float, copy=False)
+        observation = observation.astype(dtype=float)
+        reconstruction = reconstruction.astype(dtype=float)
 
         flux_diff = np.abs(reconstruction - observation) ** p
 
