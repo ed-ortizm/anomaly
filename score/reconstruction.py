@@ -34,7 +34,7 @@ if __name__ == "__main__":
     start_time = time.time()
     ###########################################################################
     parser = ConfigParser(interpolation=ExtendedInterpolation())
-    parser_name = "anomaly_score.ini"
+    parser_name = "reconstruction.ini"
     parser.read(f"{parser_name}")
     # Check files and directory
     check = FileDirectory()

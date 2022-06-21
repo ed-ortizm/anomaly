@@ -138,7 +138,7 @@ class ReconstructionMetrics:
             mean value of anomaly score of the input observation
         """
 
-        smallest_error_ids = self._get_reconstruction_error_ids(
+        smallest_error_ids = self._get_smallest_ids(
             flux_diff, percentage
         )
 
@@ -152,15 +152,15 @@ class ReconstructionMetrics:
 
     ###########################################################################
     @staticmethod
-    def _get_reconstruction_error_ids(
+    def _get_smallest_ids(
         flux_diff: np.array, percentage: int
     ) -> np.array:
 
         """
-        Compute the ids of the pixels with the largest reconstruction
+        Compute the ids of the pixels with the smallest reconstruction
             errors. If percentage is 100, then it does nothing.
             If percentage is 30%, for instance, it returns the ids of
-            30% of the pixels with the highest reconstruction errors.
+            30% of the pixels with the smalles reconstruction errors.
 
         PARAMETERS
             flux_diff: array with reconstruction errors

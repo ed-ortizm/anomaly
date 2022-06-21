@@ -165,11 +165,13 @@ def compute_anomaly_score(
     np.save(f"{save_to}/{score_name}.npy", score_with_ids)
 
     # save config file
-    with open(f"{parser_directory}/{parser_name}", "r") as config_file:
+    with open(
+        f"{parser_directory}/{parser_name}", "r", encoding="utf8"
+    ) as config_file:
 
         config = config_file.read()
 
-    with open(f"{save_to}/{parser_name}", "w") as config_file:
+    with open(f"{save_to}/{parser_name}", "w", encoding="utf8") as config_file:
 
         config_file.write(config)
 

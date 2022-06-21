@@ -36,17 +36,16 @@ class ReconstructionAnomalyScore(ReconstructionMetrics):
     ###########################################################################
     def __init__(
         self,
-        reconstruct_fucntion,
+        reconstruct_function,
         wave: np.array,
         lines: list = None,
         velocity_filter: float = 50,
         percentage: int = 100,
         relative: bool = False,
-        epsilon: float = 1e-3,
     ):
         """
         INPUTS
-            reconstruct_fucntion: reconstruct method of trained
+            reconstruct_function: reconstruct method of trained
                 generative model
 
             lines: list with lines to discard to compute anomaly_score
@@ -62,15 +61,14 @@ class ReconstructionAnomalyScore(ReconstructionMetrics):
             epsilon: float value to avoid division by zero
         """
 
-        self.reconstruct = reconstruct_fucntion
+        self.reconstruct = reconstruct_function
         self.wave = wave
 
         self.lines = lines
-        filter_lines = velocity_filter == 0
-        self.filter_lines = filter_lines
+        self.filter_lines = velocity_filter != 0
         self.velocity_filter = velocity_filter
 
-        super().__init__(percentage, relative, epsilon)
+        super().__init__(percentage=percentage, relative=relative)
 
     ###########################################################################
     def score(
