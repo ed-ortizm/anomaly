@@ -1,30 +1,49 @@
 """Metrics for outlier detection based on generative models"""
 import numpy as np
 
-###############################################################################
-class ReconstructionMetrics:
+
+class Distance:
     """
-    Class with metrics to compute anomaly score based on a reconstruction
+    Distance metrics between N-dimensioal vectors to compute the
+    distance between observation and reconstruction
     """
 
-    def __init__(
-        self,
-        percentage: int = 100,
-        relative: bool = False,
-        epsilon: float = 1e-3,
-    ):
+    def __init__(self):
+        pass
+
+    @staticmethod
+    def correlation(
+        observation: np.array, reconstruction: np.array
+    ) -> np.array:
+
         """
+        Compute cosine distance between observation and reconstruction
+
         PARAMETERS
-            percentage: percentage of fluxes with the highest
-                reconstruction error to consider to compute
-                the anomaly score
-            relative: whether or not the score is weigthed by the input
-            epsilon: float value to avoid division by zero
+            observation: array with the origin of fluxes
+            reconstruction: the reconstruction of the input observations.
+            p:
+
+        OUTPUT
+            anomaly_score: of the input observation
         """
 
-        self.percentage = percentage
-        self.relative = relative
-        self.epsilon = epsilon
+        observation = observation.astype(dtype=float)
+        observation -= np.mean(observation, axis=1)
+
+        reconstruction = reconstruction.astype(dtype=float)
+        reconstruction -= np.mean(reconstruction, axis=1)
+
+        dot_product = np.sum(observation*reconstruction, axis=1)
+
+        observation_norm = np.linalg.norm(observation, axis=1)
+        reconstruction_norm = np.linalg.norm(reconstruction, axis=1)
+
+        anomaly_score = dot_product/(observation_norm*reconstruction_norm)
+
+        anomaly_score = 1 - anomaly_score
+
+        return anomaly_score
 
     @staticmethod
     def cosine(
@@ -56,6 +75,30 @@ class ReconstructionMetrics:
         anomaly_score = 1 - anomaly_score
 
         return anomaly_score
+
+class Reconstruction:
+    """
+    Class with metrics to compute anomaly score based on a reconstruction
+    """
+
+    def __init__(
+        self,
+        percentage: int = 100,
+        relative: bool = False,
+        epsilon: float = 1e-3,
+    ):
+        """
+        PARAMETERS
+            percentage: percentage of fluxes with the highest
+                reconstruction error to consider to compute
+                the anomaly score
+            relative: whether or not the score is weigthed by the input
+            epsilon: float value to avoid division by zero
+        """
+
+        self.percentage = percentage
+        self.relative = relative
+        self.epsilon = epsilon
 
     def mse(self, observation: np.array, reconstruction: np.array) -> np.array:
 
