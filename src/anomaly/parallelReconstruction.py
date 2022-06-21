@@ -1,4 +1,5 @@
 """process base parallelism to compute reconstruction anomaly scores"""
+from collections import namedtuple
 import itertools
 import multiprocessing as mp
 from multiprocessing.sharedctypes import RawArray
@@ -11,7 +12,15 @@ from anomaly.reconstruction import ReconstructionAnomalyScore
 from sdss.utils.managefiles import FileDirectory
 from autoencoders.ae import AutoEncoder
 
-###############################################################################
+FilterParameters = namedtuple(
+    "FilterParameters", ["wave", "velocity_filter", "lines"]
+)
+
+ReconstructionParameters = namedtuple(
+    "ReconstructionParameters", ["relative", "percentage", "epsilon"]
+)
+
+
 def to_numpy_array(array: RawArray, array_shape: tuple = None) -> np.array:
     """Create a numpy array backed by a shared memory Array."""
 
@@ -79,7 +88,6 @@ def init_shared_data(
     parser_name = share_parser_name
     parser_directory = share_parser_directory
 
-
 ###############################################################################
 def compute_anomaly_score(
     metric: str,
@@ -95,53 +103,51 @@ def compute_anomaly_score(
     """
     ###########################################################################
     # set the number of cores to use per model in each worker
-    jobs = cores_per_worker
     config = tf.compat.v1.ConfigProto(
-        intra_op_parallelism_threads=jobs,
-        inter_op_parallelism_threads=jobs,
+        intra_op_parallelism_threads=cores_per_worker,
+        inter_op_parallelism_threads=cores_per_worker,
         allow_soft_placement=True,
-        device_count={"CPU": jobs},
+        device_count={"CPU": cores_per_worker},
     )
     session = tf.compat.v1.Session(config=config)
     ###########################################################################
     # Define reconstruction function
     model = AutoEncoder(reload=True, reload_from=model_directory)
-    reconstruct_function = model.reconstruct
-    ###########################################################################
+
     # Define anomaly score class
     anomaly = ReconstructionAnomalyScore(
-        reconstruct_function,
-        wave,
-        lines=lines,
-        velocity_filter=velocity_filter,
-        percentage=percentage,
-        relative=relative,
-        epsilon=epsilon,
+        model.reconstruct,
+        filter_parameters=FilterParameters(
+            wave=wave,
+            lines=lines,
+            velocity_filter=velocity_filter
+        ),
+        reconstruction_parameters=ReconstructionParameters(
+            percentage=percentage,
+            relative=relative,
+            epsilon=epsilon
+        )
     )
 
     # define name of score:
     # metric_filter_velocity --> has: rel50, noRel75, ...
-    df_name = f"{metric}"
+    score_name = f"{metric}"
 
-    have_to_filter = velocity_filter != 0
+    # if have have to filter
+    if velocity_filter != 0:
 
-    if have_to_filter is True:
-
-        df_name = f"{df_name}_filter_{velocity_filter}Kms"
+        score_name = f"{score_name}_filter_{velocity_filter}kms"
 
     # define name of column that will contain the anomaly in the data_frame
-    column_df_name = f"{percentage}"
-
     if relative is True:
 
-        column_df_name = f"rel{column_df_name}"
+        score_name = f"{score_name}_rel{percentage}"
 
     else:
 
-        column_df_name = f"noRel{column_df_name}"
+        score_name = f"{score_name}_noRel{percentage}"
 
     # define name of array if score is saved
-    score_name = f"{df_name}_{column_df_name}"
     ###########################################################################
     # Compute anomaly score
     with counter.get_lock():
@@ -159,7 +165,7 @@ def compute_anomaly_score(
             score.reshape(-1, 1),
         )
     )
-    save_to = f"{output_directory}/{df_name}"
+    save_to = f"{output_directory}/{score_name}"
     FileDirectory().check_directory(save_to, exit_program=False)
 
     np.save(f"{save_to}/{score_name}.npy", score_with_ids)
