@@ -68,6 +68,10 @@ class DistanceAnomalyScore(Distance):
             observation = self.filter_object.filter(observation[:, 0, :, 0])
             reconstruction = self.filter_object.filter(reconstruction)
 
+        else:
+
+            observation = observation[:, 0, :, 0]
+
         if metric == "correlation":
 
             anomaly_score = super().correlation(observation, reconstruction)

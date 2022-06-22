@@ -29,10 +29,10 @@ class Distance:
         """
 
         observation = observation.astype(dtype=float)
-        observation -= np.mean(observation, axis=1)
+        observation -= np.mean(observation, axis=1, keepdims=True)
 
         reconstruction = reconstruction.astype(dtype=float)
-        reconstruction -= np.mean(reconstruction, axis=1)
+        reconstruction -= np.mean(reconstruction, axis=1, keepdims=True)
 
         dot_product = np.sum(observation*reconstruction, axis=1)
 
