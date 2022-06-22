@@ -12,6 +12,35 @@ class Distance:
         pass
 
     @staticmethod
+    def braycurtis(
+        observation: np.array, reconstruction: np.array
+    ) -> np.array:
+
+        """
+        Compute Bray Curtis distance between observation and reconstruction.
+        eq: |observation - reconstruction| / |observation + reconstruction|
+
+        PARAMETERS
+            observation: array with the origin of fluxes
+            reconstruction: the reconstruction of the input observations.
+            p:
+
+        OUTPUT
+            anomaly_score: of the input observation
+        """
+
+        observation = observation.astype(dtype=float)
+        observation -= np.mean(observation, axis=1, keepdims=True)
+
+        reconstruction = reconstruction.astype(dtype=float)
+        reconstruction -= np.mean(reconstruction, axis=1, keepdims=True)
+
+        score = np.sum(np.abs(observation - reconstruction), axis=1)
+        score *= 1/np.sum(np.abs(observation + reconstruction), axis=1)
+
+        return score
+
+    @staticmethod
     def correlation(
         observation: np.array, reconstruction: np.array
     ) -> np.array:
@@ -39,11 +68,11 @@ class Distance:
         observation_norm = np.linalg.norm(observation, axis=1)
         reconstruction_norm = np.linalg.norm(reconstruction, axis=1)
 
-        anomaly_score = dot_product/(observation_norm*reconstruction_norm)
+        score = dot_product/(observation_norm*reconstruction_norm)
 
-        anomaly_score = 1 - anomaly_score
+        score = 1 - score
 
-        return anomaly_score
+        return score
 
     @staticmethod
     def cosine(
@@ -70,11 +99,11 @@ class Distance:
         observation_norm = np.linalg.norm(observation, axis=1)
         reconstruction_norm = np.linalg.norm(reconstruction, axis=1)
 
-        anomaly_score = dot_product/(observation_norm*reconstruction_norm)
+        score = dot_product/(observation_norm*reconstruction_norm)
 
-        anomaly_score = 1 - anomaly_score
+        score = 1 - score
 
-        return anomaly_score
+        return score
 
 class Reconstruction:
     """
