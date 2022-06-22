@@ -262,6 +262,7 @@ class ReconstructionAnomalyScore(Reconstruction):
         # in case I pass a spectra with one dimension
         # this line converts 1D array to (1, n_wave, 3)
         # an image where each channel has the spectrun
+        # for compatibility with lime image explainer :)
         observation = spectra_to_batch_image(observation)
 
         assert observation.ndim == 4
@@ -272,6 +273,11 @@ class ReconstructionAnomalyScore(Reconstruction):
 
             observation = self.filter_object.filter(observation[:, 0, :, 0])
             reconstruction = self.filter_object.filter(reconstruction)
+
+        # observation as image to obserbation as spectra
+        else:
+
+            observation = observation[:, 0, :, 0]
 
         if metric == "lp":
 
