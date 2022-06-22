@@ -1,8 +1,111 @@
 """Metrics for outlier detection based on generative models"""
 import numpy as np
 
-###############################################################################
-class ReconstructionMetrics:
+
+class Distance:
+    """
+    Distance metrics between N-dimensioal vectors to compute the
+    distance between observation and reconstruction
+    """
+
+    def __init__(self):
+        pass
+
+    @staticmethod
+    def braycurtis(
+        observation: np.array, reconstruction: np.array
+    ) -> np.array:
+
+        """
+        Compute Bray Curtis distance between observation and reconstruction.
+        eq: |observation - reconstruction| / |observation + reconstruction|
+
+        PARAMETERS
+            observation: array with the origin of fluxes
+            reconstruction: the reconstruction of the input observations.
+            p:
+
+        OUTPUT
+            anomaly_score: of the input observation
+        """
+
+        observation = observation.astype(dtype=float)
+        observation -= np.mean(observation, axis=1, keepdims=True)
+
+        reconstruction = reconstruction.astype(dtype=float)
+        reconstruction -= np.mean(reconstruction, axis=1, keepdims=True)
+
+        score = np.sum(np.abs(observation - reconstruction), axis=1)
+        score *= 1/np.sum(np.abs(observation + reconstruction), axis=1)
+
+        return score
+
+    @staticmethod
+    def correlation(
+        observation: np.array, reconstruction: np.array
+    ) -> np.array:
+
+        """
+        Compute cosine distance between observation and reconstruction
+
+        PARAMETERS
+            observation: array with the origin of fluxes
+            reconstruction: the reconstruction of the input observations.
+            p:
+
+        OUTPUT
+            anomaly_score: of the input observation
+        """
+
+        observation = observation.astype(dtype=float)
+        observation -= np.mean(observation, axis=1, keepdims=True)
+
+        reconstruction = reconstruction.astype(dtype=float)
+        reconstruction -= np.mean(reconstruction, axis=1, keepdims=True)
+
+        dot_product = np.sum(observation*reconstruction, axis=1)
+
+        observation_norm = np.linalg.norm(observation, axis=1)
+        reconstruction_norm = np.linalg.norm(reconstruction, axis=1)
+
+        score = dot_product/(observation_norm*reconstruction_norm)
+
+        score = 1 - score
+
+        return score
+
+    @staticmethod
+    def cosine(
+        observation: np.array, reconstruction: np.array
+    ) -> np.array:
+
+        """
+        Compute cosine distance between observation and reconstruction
+
+        PARAMETERS
+            observation: array with the origin of fluxes
+            reconstruction: the reconstruction of the input observations.
+            p:
+
+        OUTPUT
+            anomaly_score: of the input observation
+        """
+
+        observation = observation.astype(dtype=float)
+        reconstruction = reconstruction.astype(dtype=float)
+
+        dot_product = np.sum(observation*reconstruction, axis=1)
+
+        observation_norm = np.linalg.norm(observation, axis=1)
+        reconstruction_norm = np.linalg.norm(reconstruction, axis=1)
+
+        score = dot_product/(observation_norm*reconstruction_norm)
+
+        score = 1 - score
+
+        return score
+
+class Reconstruction:
     """
     Class with metrics to compute anomaly score based on a reconstruction
     """
@@ -26,7 +129,6 @@ class ReconstructionMetrics:
         self.relative = relative
         self.epsilon = epsilon
 
-    ###########################################################################
     def mse(self, observation: np.array, reconstruction: np.array) -> np.array:
 
         """
@@ -42,7 +144,6 @@ class ReconstructionMetrics:
 
         return self.lp(observation, reconstruction, p=2)
 
-    ###########################################################################
     def mad(self, observation: np.array, reconstruction: np.array) -> np.array:
 
         """
@@ -56,7 +157,6 @@ class ReconstructionMetrics:
 
         return self.lp(observation, reconstruction, p=1)
 
-    ###########################################################################
     def lp(
         self, observation: np.array, reconstruction: np.array, p: float = 0.33
     ) -> np.array:
@@ -75,8 +175,8 @@ class ReconstructionMetrics:
 
         # the square of badly reconstructed spectra mig be larger than
         # a float32
-        observation = observation.astype(dtype=float, copy=False)
-        reconstruction = reconstruction.astype(dtype=float, copy=False)
+        observation = observation.astype(dtype=float)
+        reconstruction = reconstruction.astype(dtype=float)
 
         flux_diff = np.abs(reconstruction - observation) ** p
 
@@ -110,7 +210,7 @@ class ReconstructionMetrics:
             mean value of anomaly score of the input observation
         """
 
-        smallest_error_ids = self._get_reconstruction_error_ids(
+        smallest_error_ids = self._get_smallest_ids(
             flux_diff, percentage
         )
 
@@ -124,15 +224,15 @@ class ReconstructionMetrics:
 
     ###########################################################################
     @staticmethod
-    def _get_reconstruction_error_ids(
+    def _get_smallest_ids(
         flux_diff: np.array, percentage: int
     ) -> np.array:
 
         """
-        Compute the ids of the pixels with the largest reconstruction
+        Compute the ids of the pixels with the smallest reconstruction
             errors. If percentage is 100, then it does nothing.
             If percentage is 30%, for instance, it returns the ids of
-            30% of the pixels with the highest reconstruction errors.
+            30% of the pixels with the smalles reconstruction errors.
 
         PARAMETERS
             flux_diff: array with reconstruction errors

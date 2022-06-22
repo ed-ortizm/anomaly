@@ -8,7 +8,7 @@ import multiprocessing as mp
 from multiprocessing.sharedctypes import RawArray
 import numpy as np
 
-from anomaly import parallelReconstruction
+from anomaly import parallelScore
 from sdss.utils.managefiles import FileDirectory
 from sdss.utils.configfile import ConfigurationFile
 
@@ -34,7 +34,7 @@ if __name__ == "__main__":
     start_time = time.time()
     ###########################################################################
     parser = ConfigParser(interpolation=ExtendedInterpolation())
-    parser_name = "anomaly_score.ini"
+    parser_name = "reconstruction.ini"
     parser.read(f"{parser_name}")
     # Check files and directory
     check = FileDirectory()
@@ -111,7 +111,7 @@ if __name__ == "__main__":
     score_config = configuration.section_to_dictionary(
         score_config, [",", "\n"]
     )
-    parameters_grid = parallelReconstruction.get_grid(score_config)
+    parameters_grid = parallelScore.get_grid(score_config)
     ###########################################################################
     number_processes = parser.getint("configuration", "jobs")
     cores_per_worker = parser.getint("configuration", "cores_per_worker")
@@ -120,7 +120,7 @@ if __name__ == "__main__":
 
     with mp.Pool(
         processes=number_processes,
-        initializer=parallelReconstruction.init_shared_data,
+        initializer=parallelScore.init_shared_data,
         initargs=(
             counter,
             share_wave,
@@ -137,7 +137,7 @@ if __name__ == "__main__":
     ) as pool:
 
         pool.starmap(
-            parallelReconstruction.compute_anomaly_score, parameters_grid
+            parallelScore.compute_anomaly_score, parameters_grid
         )
 
     ###########################################################################
