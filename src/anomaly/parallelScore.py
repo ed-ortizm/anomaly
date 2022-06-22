@@ -1,5 +1,4 @@
 """process base parallelism to compute reconstruction anomaly scores"""
-from collections import namedtuple
 import itertools
 import multiprocessing as mp
 from multiprocessing.sharedctypes import RawArray
@@ -8,17 +7,11 @@ from multiprocessing.sharedctypes import RawArray
 import numpy as np
 import tensorflow as tf
 
+from anomaly.distance import DistanceAnomalyScore
 from anomaly.reconstruction import ReconstructionAnomalyScore
+from anomaly.utils import FilterParameters, ReconstructionParameters
 from sdss.utils.managefiles import FileDirectory
 from autoencoders.ae import AutoEncoder
-
-FilterParameters = namedtuple(
-    "FilterParameters", ["wave", "velocity_filter", "lines"]
-)
-
-ReconstructionParameters = namedtuple(
-    "ReconstructionParameters", ["relative", "percentage", "epsilon"]
-)
 
 
 def to_numpy_array(array: RawArray, array_shape: tuple = None) -> np.array:
@@ -185,6 +178,81 @@ def compute_anomaly_score(
     session.close()
 
 
+def distance_score(
+    metric: str,
+    lines: list,
+    velocity_filter: float,
+) -> None:
+    """
+    Compute anomaly score based on distance between observation
+    and reconstruction. Different to the use of residuals between
+    observation and reconstruction
+    """
+    ###########################################################################
+    # set the number of cores to use per model in each worker
+    config = tf.compat.v1.ConfigProto(
+        intra_op_parallelism_threads=cores_per_worker,
+        inter_op_parallelism_threads=cores_per_worker,
+        allow_soft_placement=True,
+        device_count={"CPU": cores_per_worker},
+    )
+    session = tf.compat.v1.Session(config=config)
+    ###########################################################################
+    # Define reconstruction function
+    model = AutoEncoder(reload=True, reload_from=model_directory)
+
+    # Define anomaly score class
+    anomaly = DistanceAnomalyScore(
+        model.reconstruct,
+        filter_parameters=FilterParameters(
+            wave=wave,
+            lines=lines,
+            velocity_filter=velocity_filter
+        )
+    )
+
+    # define name of score:
+    # metric_filter_velocity --> has: rel50, noRel75, ...
+    score_name = f"{metric}"
+
+    # if have have to filter
+    if velocity_filter != 0:
+
+        score_name = f"{score_name}_filter_{velocity_filter}kms"
+
+    # Compute anomaly score
+    with counter.get_lock():
+
+        print(f"[{counter.value}] Compute {score_name}", end="\r")
+
+        counter.value += 1
+
+    score = anomaly.score(observation=observation, metric=metric)
+
+    score_with_ids = np.hstack(
+        (
+            specobj_id.reshape(-1, 1),
+            train_id.reshape(-1, 1),
+            score.reshape(-1, 1),
+        )
+    )
+    save_to = f"{output_directory}/{score_name}"
+    FileDirectory().check_directory(save_to, exit_program=False)
+
+    np.save(f"{save_to}/{score_name}.npy", score_with_ids)
+
+    # save config file
+    with open(
+        f"{parser_directory}/{parser_name}", "r", encoding="utf8"
+    ) as config_file:
+
+        config = config_file.read()
+
+    with open(f"{save_to}/{parser_name}", "w", encoding="utf8") as config_file:
+
+        config_file.write(config)
+
+    session.close()
 ###############################################################################
 def get_grid(parameters: dict) -> itertools.product:
     """
@@ -201,13 +269,27 @@ def get_grid(parameters: dict) -> itertools.product:
 
             parameters[key] = [value]
 
-    grid = itertools.product(
-        parameters["metric"],
-        [parameters["lines"]],  # I need the whole list of lines
-        parameters["velocity"],
-        parameters["percentage"],
-        parameters["relative"],
-        parameters["epsilon"],
-    )
+    is_reconstruction = len(
+        {"lp", "mad", "mse"}.intersection(parameters["metric"])
+    ) != 0
+
+    if is_reconstruction is True:
+
+        grid = itertools.product(
+            parameters["metric"],
+            [parameters["lines"]],  # I need the whole list of lines
+            parameters["velocity"],
+            parameters["percentage"],
+            parameters["relative"],
+            parameters["epsilon"],
+        )
+
+    else:
+
+        grid = itertools.product(
+            parameters["metric"],
+            [parameters["lines"]],  # I need the whole list of lines
+            parameters["velocity"],
+        )
 
     return grid
