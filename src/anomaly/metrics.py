@@ -181,8 +181,12 @@ class Reconstruction:
         flux_diff = np.abs(reconstruction - observation) ** p
 
         if self.relative is True:
-
-            relative_weight = np.abs(reconstruction) ** (1 / p) + self.epsilon
+            # chi^2 = (observation - expected value)**2 / expected value
+            # In this context each term in the formula means:
+            # observation --> reconstruction
+            # expected value --> observation
+            # notation is a misleading :s
+            relative_weight = np.abs(observation) ** (1 / p) + self.epsilon
             flux_diff *= 1.0 / relative_weight
 
         flux_diff = self._update_dimensions(flux_diff)
