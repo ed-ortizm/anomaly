@@ -132,6 +132,45 @@ class Reconstruction:
         self.relative = relative
         self.epsilon = epsilon
 
+    def braycurtis(self,
+        observation: np.array, reconstruction: np.array
+    ) -> np.array:
+
+        """
+        Compute Bray Curtis distance between observation and reconstruction.
+        bc: |observation - reconstruction| / |observation + reconstruction|
+
+        PARAMETERS
+            observation: array with the origin of fluxes
+            reconstruction: the reconstruction of the input observations.
+            p:
+
+        OUTPUT
+            anomaly_score: of the input observation
+        """
+
+        observation = observation.astype(dtype=float)
+        reconstruction = reconstruction.astype(dtype=float)
+
+        flux_diff = np.abs(observation - reconstruction)
+        flux_diff = self._update_dimensions(flux_diff)
+
+        flux_add = np.abs(observation + reconstruction)
+        flux_add = self._update_dimensions(flux_add)
+
+        smallest_error_ids = self._get_smallest_ids(
+            flux_diff, self.percentage
+        )
+        # set size of score array to number of spectra present in array
+        score = np.empty((flux_diff.shape[0],))
+
+        for idx, reconstruction_id in enumerate(smallest_error_ids):
+
+            score[idx] = np.sum(flux_diff[idx, reconstruction_id])
+            score[idx] *= 1/np.sum(flux_add[idx, reconstruction_id])
+
+        return score.reshape(-1, 1)
+
     def mse(self, observation: np.array, reconstruction: np.array) -> np.array:
 
         """
@@ -198,7 +237,6 @@ class Reconstruction:
 
         return anomaly_score
 
-    ###########################################################################
     def _get_mean_value(
         self, flux_diff: np.array, percentage: int
     ) -> np.array:
@@ -229,7 +267,6 @@ class Reconstruction:
 
         return np.mean(anomaly_score, axis=1)
 
-    ###########################################################################
     @staticmethod
     def _get_smallest_ids(
         flux_diff: np.array, percentage: int
