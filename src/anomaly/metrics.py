@@ -18,7 +18,7 @@ class Distance:
 
         """
         Compute Bray Curtis distance between observation and reconstruction.
-        eq: |observation - reconstruction| / |observation + reconstruction|
+        bc: |observation - reconstruction| / |observation + reconstruction|
 
         PARAMETERS
             observation: array with the origin of fluxes
@@ -30,10 +30,7 @@ class Distance:
         """
 
         observation = observation.astype(dtype=float)
-        observation -= np.mean(observation, axis=1, keepdims=True)
-
         reconstruction = reconstruction.astype(dtype=float)
-        reconstruction -= np.mean(reconstruction, axis=1, keepdims=True)
 
         score = np.sum(np.abs(observation - reconstruction), axis=1)
         score *= 1/np.sum(np.abs(observation + reconstruction), axis=1)
@@ -46,7 +43,13 @@ class Distance:
     ) -> np.array:
 
         """
-        Compute cosine distance between observation and reconstruction
+        Compute correlation distance between observation and reconstruction.
+        If u is observation and v reconstruction, then:
+
+        corr = 1
+            -
+            \frac{(u-\bar{u})\cdot((v-\bar{v}))}
+            {\|(u-\bar{u}\|\|(v-\bar{v}\|}
 
         PARAMETERS
             observation: array with the origin of fluxes
