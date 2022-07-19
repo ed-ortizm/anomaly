@@ -106,5 +106,10 @@ class ReconstructionAnomalyScore(Reconstruction):
             anomaly_score = super().mad(observation, reconstruction)
             return anomaly_score.reshape((-1, 1))
 
+        if metric == "braycurtis":
+
+            anomaly_score = super().braycurtis(observation, reconstruction)
+            return anomaly_score.reshape((-1, 1))
+
         print(f"{metric} not implemented")
         sys.exit()

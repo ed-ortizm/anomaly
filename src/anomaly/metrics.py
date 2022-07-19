@@ -294,18 +294,16 @@ class Reconstruction:
 
             number_fluxes = int(0.01 * percentage * number_fluxes)
 
+            smallest_residuals_ids = np.argpartition(
+                flux_diff, number_fluxes, axis=1
+            )[:, :number_fluxes]
+
         else:
 
-            number_fluxes -= 1
-
-        smallest_residuals_ids = np.argpartition(
-            flux_diff, number_fluxes, axis=1
-        )[:, :number_fluxes]
-
+            smallest_residuals_ids = np.arange(0, number_fluxes)
 
         return smallest_residuals_ids
 
-    ###########################################################################
     @staticmethod
     def _update_dimensions(x: np.array) -> np.array:
 
@@ -314,4 +312,3 @@ class Reconstruction:
 
         return x
 
-    ###########################################################################
