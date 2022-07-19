@@ -110,7 +110,7 @@ class Distance:
 
 class Reconstruction:
     """
-    Class with metrics to compute anomaly score based on a reconstruction
+    Class with metrics to compute anomaly score based on residuals
     """
 
     def __init__(
