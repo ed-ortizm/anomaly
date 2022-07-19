@@ -270,7 +270,7 @@ def get_grid(parameters: dict) -> itertools.product:
             parameters[key] = [value]
 
     is_reconstruction = len(
-        {"lp", "mad", "mse"}.intersection(parameters["metric"])
+        {"lp", "mad", "mse", "braycurtis"}.intersection(parameters["metric"])
     ) != 0
 
     if is_reconstruction is True:

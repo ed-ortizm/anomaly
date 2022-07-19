@@ -40,7 +40,7 @@ if filter_velocity != 0:
     score_name = f"{score_name}_filter_{filter_velocity}kms"
 
 # comply with personal naming convetion of directories
-is_reconstruction = {"lp", "mad", "mse"}.intersection([metric])
+is_reconstruction = {"lp", "mad", "mse", "braycurtis"}.intersection([metric])
 is_reconstruction = len(is_reconstruction) != 0
 
 if is_reconstruction is True:
