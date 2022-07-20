@@ -260,7 +260,6 @@ class Reconstruction:
         )
 
         anomaly_score = np.empty(smallest_error_ids.shape)
-        print(anomaly_score.shape, flux_diff.shape)
 
         for idx, reconstruction_id in enumerate(smallest_error_ids):
 
