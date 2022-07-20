@@ -260,6 +260,7 @@ class Reconstruction:
         )
 
         anomaly_score = np.empty(smallest_error_ids.shape)
+        print(anomaly_score.shape, flux_diff.shape)
 
         for idx, reconstruction_id in enumerate(smallest_error_ids):
 
@@ -300,7 +301,9 @@ class Reconstruction:
 
         else:
 
-            smallest_residuals_ids = np.arange(0, number_fluxes)
+            smallest_residuals_ids = np.array(
+                [np.arange(0, number_fluxes) for _ in range(flux_diff.shape[0])]
+            )
 
         return smallest_residuals_ids
 
