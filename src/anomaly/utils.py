@@ -1,4 +1,4 @@
-"""Functionality such as functions or data containers"""
+"""Functionality and data containers"""
 
 from collections import namedtuple
 
@@ -116,3 +116,26 @@ class VelocityFilter:
             velocity_mask *= line_mask
 
         return velocity_mask
+
+def specobjid_to_idx(specobjid: int, ids: np.array) -> int:
+    """
+    Obtain index of spectrum in array that contains all
+    spectra (non-binned) already preprocessed.
+    
+    INPUTS
+    specobjid: unique sdss id indentifier
+    ids: array that relates specobjid with the index of the
+        spectrum in array with all spectra.
+        ids[:, 0] -> index in spectra array
+        ids[:, 1] -> specobjid of spectra
+
+    OUTPUT
+    idx: index of specobjid spectrum in array with all spectra 
+
+    """
+
+    mask = np.where(ids[:, 1]==specobjid, True, False)
+    
+    idx = int(ids[mask, 0][0])
+
+    return idx

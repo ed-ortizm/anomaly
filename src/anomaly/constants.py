@@ -14,3 +14,38 @@ GALAXY_LINES = {
     "SII_6730": 6730.812,
     # ABSORPTION
 }
+
+# dictionary with score names and their description
+scores_description = {
+    "correlation": "Correlation",
+    "correlation_filter_250kms": "Correlation (250 km s$^{-1}$ filter)",
+    "cosine": "Cosine disimilarity score",
+    "cosine_filter_250kms": "Cosine disimilarity (250 km s$^{-1}$ filter)",
+
+    "lp_noRel100": "$L^p$",
+    "lp_filter_250kms_noRel100": "$L^p$ (250 km s$^{-1}$ filter)",
+    "lp_noRel97": "$L^p$ (ignore 3% of largest residuals)",
+    "lp_filter_250kms_noRel97": "$L^p$ (250 km s$^{-1}$ filter, ignore 3% of largest residuals)",
+    "lp_rel100": "$L^p$ relative",
+    "lp_filter_250kms_rel100": "$L^p$ relative (250 km s$^{-1}$ filter)",
+    "lp_rel97": "$L^p$ relative (ignore 3% of largest residuals)",
+    "lp_filter_250kms_rel97": "$L^p$ relative (250 km s$^{-1}$ filter, ignore 3% of largest residuals)",
+
+    "mad_noRel100": "MAD",
+    "mad_filter_250kms_noRel100": "MAD (250 km s$^{-1}$ filter)",
+    "mad_noRel97": "MAD (ignore 3% of largest residuals)",
+    "mad_filter_250kms_noRel97": "MAD (250 km s$^{-1}$ filter, ignore 3% of largest residuals)",
+    "mad_rel100": "MAD relative score",
+    "mad_filter_250kms_rel100": "MAD relative (250 km s$^{-1}$ filter)",
+    "mad_rel97": "MAD relative (ignore 3% of largest residuals)",
+    "mad_filter_250kms_rel97": "MAD relative (250 km s$^{-1}$ filter, ignore 3% of largest residuals)",
+
+    "mse_noRel100": "MSE",
+    "mse_filter_250kms_noRel100": "MSE (250 km s$^{-1}$ filter)",
+    "mse_noRel97": "MSE (ignore 3% of largest residuals)",
+    "mse_filter_250kms_noRel97": "MSE (250 km s$^{-1}$ filter, ignore 3% of largest residuals)",
+    "mse_rel100": "MSE relative score",
+    "mse_filter_250kms_rel100": "MSE relative (250 km s$^{-1}$ filter)",
+    "mse_rel97": "MSE relative (ignore 3% of largest residuals)",
+    "mse_filter_250kms_rel97": "MSE relative (250 km s$^{-1}$ filter, ignore 3% of largest residuals)"
+}
