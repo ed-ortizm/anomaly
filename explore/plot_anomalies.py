@@ -47,12 +47,12 @@ model = AutoEncoder(
 df_scores = {}
 
 for score_name in scores_description.keys():
-    
+
     df_scores[score_name] = pd.read_csv(
-        f"{scores_directory}/{score_name}/top_anomalies.csv.gz",
+        f"{scores_directory}/{score_name}/top_normal.csv.gz",
         index_col="specobjid",
     )
-        
+
 image_format = "jpg"
 
 fig, axs = plt.subplots(nrows=2, ncols=1, sharex=True, tight_layout=True)
@@ -60,21 +60,21 @@ fig, axs = plt.subplots(nrows=2, ncols=1, sharex=True, tight_layout=True)
 for score in scores_description.keys():
 
 
-    save_to = f"/home/edgar/anomaly/img/residuals/{score}"
+    save_to = f"/home/edgar/anomaly/img/residuals/normal/{score}"
 
     if os.path.exists(save_to) is False:
         os.makedirs(save_to)
 
-    for rank in range(1, 1001):
+    for rank in range(0, 20):
 
         print(f"[{score}] Rank: {rank}", end="\r")
 
-        specobjid = df_scores[score].index[-rank]
+        specobjid = df_scores[score].index[rank]
         idx = specobjid_to_idx(specobjid, ids)
 
         observation = spectra[idx]
         reconstruction = model.reconstruct(observation).reshape(-1)
-        
+
         inspect_reconstruction(
             wave, observation, reconstruction,
             fig, axs,
