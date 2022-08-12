@@ -139,3 +139,58 @@ def specobjid_to_idx(specobjid: int, ids: np.array) -> int:
     idx = int(ids[mask, 0][0])
 
     return idx
+
+def set_intersection(specobjids: dict, max_rank: int, min_rank: int) -> set:
+
+    """
+    Interset sets of specobjids
+    
+    INPUT
+    specobjids: dictionary with arrays of specobjids ordered by anomalous
+        rank
+        key: score name, e.g, lp_noRel100
+        value: set with specobjid of spectra
+    max_rank: the (max_rank+1)^{th} most anomalous spectrum
+    min_rank: the (min_rank+1)^{th} most anomalous spectrum
+        If the rank is 0 then it is the most anomalous spectrum
+        If the rank is 1,then it is the second mosth anomalous spectrum...
+    """
+    score_names = list(specobjids.keys())
+    # Adjust ranks
+    if min_rank == 0:
+
+        specobjids = {
+            score_name: specobjids[score_name][-max_rank:] for score_name in score_names
+            }
+
+    else:
+
+        specobjids = {
+            score_name: specobjids[score_name][-max_rank:-min_rank] for score_name in score_names
+            }
+    
+    # get a set of any score
+    intersection_set = set(specobjids[score_names[0]])
+
+    for score_name in score_names:
+
+        intersection_set = intersection_set.intersection(
+            set(specobjids[score_name])
+        )
+    
+    return intersection_set
+
+def set_difference(specobjids: set, intersection_specobjids: set) -> set:
+    """
+    Return the set diffrerence between specobjids and a set that
+    came from the intersection with other sets
+    
+    INPUTS
+    specobjids: set with ids that was used for an intersection
+    intersection_specobjids: set from the intersection of
+        specobjids with other sets
+    """
+
+    set_difference = specobjids.difference(intersection_specobjids)
+    
+    return set_difference
