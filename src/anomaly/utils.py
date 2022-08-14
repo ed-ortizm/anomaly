@@ -194,3 +194,25 @@ def set_difference(specobjids: set, intersection_specobjids: set) -> set:
     set_difference = specobjids.difference(intersection_specobjids)
     
     return set_difference
+
+def line_width_from_velocity(velocity: float, line_wavelength: float) -> float:
+
+    """
+    Get the width of a line in $\AA$ accoring to the input 
+    rotational velocity.
+    
+    INPUT
+    velocity: rotational velocity in kms^-1
+    line_wavelength: wavelength of emissionon line to test,
+        e.g $H_{\alpha}$ = 6562
+
+    OUTPUT
+    line_width: width of line in $\AA$
+    """
+ 
+    # convert light speed to kms-1
+    c = cst.c *1e-3
+    
+    line_width = 2*(velocity/c)*line_wavelength
+
+    return line_width
