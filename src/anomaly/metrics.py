@@ -37,12 +37,12 @@ class Distance:
         observation = observation.astype(dtype=float)
         observation -= np.mean(observation, axis=1, keepdims=True)
 
-        reconstruction = reconstruction.astype(dtype=float)
-        reconstruction -= np.mean(reconstruction, axis=1, keepdims=True)
-
         observation, reconstruction = self._smallest_residuals(
             observation, reconstruction
         )
+
+        reconstruction = reconstruction.astype(dtype=float)
+        reconstruction -= np.mean(reconstruction, axis=1, keepdims=True)
 
         dot_product = np.sum(observation * reconstruction, axis=1)
 
@@ -74,20 +74,51 @@ class Distance:
         observation = observation.astype(dtype=float)
         reconstruction = reconstruction.astype(dtype=float)
 
+        observation, reconstruction = self._smallest_residuals(
+            observation, reconstruction
+        )
+
         dot_product = np.sum(observation * reconstruction, axis=1)
 
         observation_norm = np.linalg.norm(observation, axis=1)
         reconstruction_norm = np.linalg.norm(reconstruction, axis=1)
-
-        observation, reconstruction = self._smallest_residuals(
-            observation, reconstruction
-        )
 
         score = dot_product / (observation_norm * reconstruction_norm)
 
         score = 1 - score
 
         return score
+
+    def braycurtis(
+        self, observation: np.array, reconstruction: np.array
+    ) -> np.array:
+
+        """
+        Compute Bray Curtis distance between observation and reconstruction.
+        bc: |observation - reconstruction| / |observation + reconstruction|
+
+        PARAMETERS
+            observation: array with the origin of fluxes
+            reconstruction: the reconstruction of the input observations.
+            p:
+
+        OUTPUT
+            anomaly_score: of the input observation
+        """
+
+        observation = observation.astype(dtype=float)
+        reconstruction = reconstruction.astype(dtype=float)
+
+        observation, reconstruction = self._smallest_residuals(
+            observation, reconstruction
+        )
+
+        flux_diff = np.abs(observation - reconstruction)
+        flux_add = np.abs(observation + reconstruction)
+
+        score = np.sum(flux_diff, axis=1)/np.sum(flux_add, axis=1)
+
+        return score.reshape(-1, 1)
 
     def _smallest_residuals(
         self, observation: np.array, reconstruction: np.array
@@ -166,43 +197,6 @@ class Reconstruction:
         self.percentage = percentage
         self.relative = relative
         self.epsilon = epsilon
-
-    def braycurtis(
-        self, observation: np.array, reconstruction: np.array
-    ) -> np.array:
-
-        """
-        Compute Bray Curtis distance between observation and reconstruction.
-        bc: |observation - reconstruction| / |observation + reconstruction|
-
-        PARAMETERS
-            observation: array with the origin of fluxes
-            reconstruction: the reconstruction of the input observations.
-            p:
-
-        OUTPUT
-            anomaly_score: of the input observation
-        """
-
-        observation = observation.astype(dtype=float)
-        reconstruction = reconstruction.astype(dtype=float)
-
-        flux_diff = np.abs(observation - reconstruction)
-        flux_diff = self._update_dimensions(flux_diff)
-
-        flux_add = np.abs(observation + reconstruction)
-        flux_add = self._update_dimensions(flux_add)
-
-        smallest_error_ids = self._get_smallest_ids(flux_diff, self.percentage)
-        # set size of score array to number of spectra present in array
-        score = np.empty((flux_diff.shape[0],))
-
-        for idx, reconstruction_id in enumerate(smallest_error_ids):
-
-            score[idx] = np.sum(flux_diff[idx, reconstruction_id])
-            score[idx] *= 1 / np.sum(flux_add[idx, reconstruction_id])
-
-        return score.reshape(-1, 1)
 
     def mse(self, observation: np.array, reconstruction: np.array) -> np.array:
 
