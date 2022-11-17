@@ -1,5 +1,6 @@
 """ Get plots of top 1000 anomalies per score based on residulas"""
 import os
+
 # Set environment variables to disable multithreading as users will probably
 # want to set the number of cores to the max of their computer.
 os.environ["OMP_NUM_THREADS"] = "1"
@@ -32,17 +33,16 @@ model_id = "0013"
 architecture = "256_128_64/latent_12"
 
 meta_data_directory = "/home/edgar/spectra/0_01_z_0_5_4_0_snr_inf"
-scores_directory = f"{meta_data_directory}/bin_04/explanation/256_128_64/latent_12"
+scores_directory = (
+    f"{meta_data_directory}/bin_04/explanation/256_128_64/latent_12"
+)
 model_directory = f"{meta_data_directory}/{bin_id}/models/{architecture}"
 
 wave = np.load(f"{meta_data_directory}/wave.npy")
 spectra = np.load(f"{meta_data_directory}/spectra.npy", mmap_mode="r")
 ids = np.load(f"{meta_data_directory}/ids_inputting.npy")
 
-model = AutoEncoder(
-    reload=True,
-    reload_from=f"{model_directory}/{model_id}"
-)
+model = AutoEncoder(reload=True, reload_from=f"{model_directory}/{model_id}")
 
 df_scores = {}
 
@@ -58,7 +58,6 @@ image_format = "jpg"
 fig, axs = plt.subplots(nrows=2, ncols=1, sharex=True, tight_layout=True)
 
 for score in scores_description.keys():
-
 
     save_to = f"/home/edgar/anomaly/img/residuals/normal/{score}"
 
@@ -76,9 +75,12 @@ for score in scores_description.keys():
         reconstruction = model.reconstruct(observation).reshape(-1)
 
         inspect_reconstruction(
-            wave, observation, reconstruction,
-            fig, axs,
+            wave,
+            observation,
+            reconstruction,
+            fig,
+            axs,
             image_format,
             save_to,
-            rank
+            rank,
         )

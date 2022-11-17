@@ -16,7 +16,9 @@ class DistanceAnomalyScore(Distance):
     tensorflow.keras and distance metrics different from metrics based on
     reconstruction residuals
     """
-    def __init__(self,
+
+    def __init__(
+        self,
         reconstruct_function,
         filter_parameters: namedtuple,
     ):
@@ -42,17 +44,15 @@ class DistanceAnomalyScore(Distance):
         self.filter_object = VelocityFilter(
             wave=filter_parameters.wave,
             velocity_filter=velocity_filter,
-            lines=filter_parameters.lines
+            lines=filter_parameters.lines,
         )
 
         self.filter_lines = velocity_filter != 0
 
         super().__init__()
 
-    def score(
-        self, observation: np.array, metric: str
-    ) -> np.array:
-        """Compute reconstruction error """
+    def score(self, observation: np.array, metric: str) -> np.array:
+        """Compute reconstruction error"""
 
         # in case I pass a spectra with one dimension
         # this line converts 1D array to (1, n_wave, 3)

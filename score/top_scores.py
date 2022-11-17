@@ -48,12 +48,12 @@ if is_reconstruction is True:
     if relative is True:
 
         score_name = f"{score_name}_rel{percentage}"
-        #score_directory = f"{score_directory}/{score_name}"
+        # score_directory = f"{score_directory}/{score_name}"
 
     else:
 
         score_name = f"{score_name}_noRel{percentage}"
-        #score_directory = f"{score_directory}/{score_name}"
+        # score_directory = f"{score_directory}/{score_name}"
 
 score_directory = f"{score_directory}/{score_name}"
 

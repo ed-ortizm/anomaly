@@ -66,21 +66,19 @@ class Distance:
         reconstruction = reconstruction.astype(dtype=float)
         reconstruction -= np.mean(reconstruction, axis=1, keepdims=True)
 
-        dot_product = np.sum(observation*reconstruction, axis=1)
+        dot_product = np.sum(observation * reconstruction, axis=1)
 
         observation_norm = np.linalg.norm(observation, axis=1)
         reconstruction_norm = np.linalg.norm(reconstruction, axis=1)
 
-        score = dot_product/(observation_norm*reconstruction_norm)
+        score = dot_product / (observation_norm * reconstruction_norm)
 
         score = 1 - score
 
         return score
 
     @staticmethod
-    def cosine(
-        observation: np.array, reconstruction: np.array
-    ) -> np.array:
+    def cosine(observation: np.array, reconstruction: np.array) -> np.array:
 
         """
         Compute cosine distance between observation and reconstruction
@@ -97,16 +95,17 @@ class Distance:
         observation = observation.astype(dtype=float)
         reconstruction = reconstruction.astype(dtype=float)
 
-        dot_product = np.sum(observation*reconstruction, axis=1)
+        dot_product = np.sum(observation * reconstruction, axis=1)
 
         observation_norm = np.linalg.norm(observation, axis=1)
         reconstruction_norm = np.linalg.norm(reconstruction, axis=1)
 
-        score = dot_product/(observation_norm*reconstruction_norm)
+        score = dot_product / (observation_norm * reconstruction_norm)
 
         score = 1 - score
 
         return score
+
 
 class Reconstruction:
     """
@@ -132,8 +131,8 @@ class Reconstruction:
         self.relative = relative
         self.epsilon = epsilon
 
-    def braycurtis(self,
-        observation: np.array, reconstruction: np.array
+    def braycurtis(
+        self, observation: np.array, reconstruction: np.array
     ) -> np.array:
 
         """
@@ -158,16 +157,14 @@ class Reconstruction:
         flux_add = np.abs(observation + reconstruction)
         flux_add = self._update_dimensions(flux_add)
 
-        smallest_error_ids = self._get_smallest_ids(
-            flux_diff, self.percentage
-        )
+        smallest_error_ids = self._get_smallest_ids(flux_diff, self.percentage)
         # set size of score array to number of spectra present in array
         score = np.empty((flux_diff.shape[0],))
 
         for idx, reconstruction_id in enumerate(smallest_error_ids):
 
             score[idx] = np.sum(flux_diff[idx, reconstruction_id])
-            score[idx] *= 1/np.sum(flux_add[idx, reconstruction_id])
+            score[idx] *= 1 / np.sum(flux_add[idx, reconstruction_id])
 
         return score.reshape(-1, 1)
 
@@ -255,9 +252,7 @@ class Reconstruction:
             mean value of anomaly score of the input observation
         """
 
-        smallest_error_ids = self._get_smallest_ids(
-            flux_diff, percentage
-        )
+        smallest_error_ids = self._get_smallest_ids(flux_diff, percentage)
 
         anomaly_score = np.empty(smallest_error_ids.shape)
 
@@ -268,9 +263,7 @@ class Reconstruction:
         return np.mean(anomaly_score, axis=1)
 
     @staticmethod
-    def _get_smallest_ids(
-        flux_diff: np.array, percentage: int
-    ) -> np.array:
+    def _get_smallest_ids(flux_diff: np.array, percentage: int) -> np.array:
 
         """
         Compute the ids of the pixels with the smallest reconstruction
@@ -301,7 +294,10 @@ class Reconstruction:
         else:
 
             smallest_residuals_ids = np.array(
-                [np.arange(0, number_fluxes) for _ in range(flux_diff.shape[0])]
+                [
+                    np.arange(0, number_fluxes)
+                    for _ in range(flux_diff.shape[0])
+                ]
             )
 
         return smallest_residuals_ids
@@ -313,4 +309,3 @@ class Reconstruction:
             x = x[np.newaxis, ...]
 
         return x
-

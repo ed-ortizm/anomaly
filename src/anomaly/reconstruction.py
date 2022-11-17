@@ -53,7 +53,7 @@ class ReconstructionAnomalyScore(Reconstruction):
         self.filter_object = VelocityFilter(
             wave=filter_parameters.wave,
             velocity_filter=velocity_filter,
-            lines=filter_parameters.lines
+            lines=filter_parameters.lines,
         )
 
         self.filter_lines = velocity_filter != 0
@@ -61,13 +61,13 @@ class ReconstructionAnomalyScore(Reconstruction):
         super().__init__(
             percentage=reconstruction_parameters.percentage,
             relative=reconstruction_parameters.relative,
-            epsilon=reconstruction_parameters.epsilon
+            epsilon=reconstruction_parameters.epsilon,
         )
 
     def score(
         self, observation: np.array, metric: str, p: float = 0.33
     ) -> np.array:
-        """Compute reconstruction error """
+        """Compute reconstruction error"""
 
         # in case I pass a spectra with one dimension
         # this line converts 1D array to (1, n_wave, 3)

@@ -81,6 +81,7 @@ def init_shared_data(
     parser_name = share_parser_name
     parser_directory = share_parser_directory
 
+
 ###############################################################################
 def compute_anomaly_score(
     metric: str,
@@ -111,15 +112,11 @@ def compute_anomaly_score(
     anomaly = ReconstructionAnomalyScore(
         model.reconstruct,
         filter_parameters=FilterParameters(
-            wave=wave,
-            lines=lines,
-            velocity_filter=velocity_filter
+            wave=wave, lines=lines, velocity_filter=velocity_filter
         ),
         reconstruction_parameters=ReconstructionParameters(
-            percentage=percentage,
-            relative=relative,
-            epsilon=epsilon
-        )
+            percentage=percentage, relative=relative, epsilon=epsilon
+        ),
     )
 
     # define name of score:
@@ -205,10 +202,8 @@ def distance_score(
     anomaly = DistanceAnomalyScore(
         model.reconstruct,
         filter_parameters=FilterParameters(
-            wave=wave,
-            lines=lines,
-            velocity_filter=velocity_filter
-        )
+            wave=wave, lines=lines, velocity_filter=velocity_filter
+        ),
     )
 
     # define name of score:
@@ -253,6 +248,8 @@ def distance_score(
         config_file.write(config)
 
     session.close()
+
+
 ###############################################################################
 def get_grid(parameters: dict) -> itertools.product:
     """
@@ -269,9 +266,14 @@ def get_grid(parameters: dict) -> itertools.product:
 
             parameters[key] = [value]
 
-    is_reconstruction = len(
-        {"lp", "mad", "mse", "braycurtis"}.intersection(parameters["metric"])
-    ) != 0
+    is_reconstruction = (
+        len(
+            {"lp", "mad", "mse", "braycurtis"}.intersection(
+                parameters["metric"]
+            )
+        )
+        != 0
+    )
 
     if is_reconstruction is True:
 

@@ -136,9 +136,7 @@ if __name__ == "__main__":
         ),
     ) as pool:
 
-        pool.starmap(
-            parallelScore.distance_score, parameters_grid
-        )
+        pool.starmap(parallelScore.distance_score, parameters_grid)
 
     ###########################################################################
     finish_time = time.time()
