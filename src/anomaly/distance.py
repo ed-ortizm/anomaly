@@ -12,15 +12,16 @@ from anomaly.utils import spectra_to_batch_image, VelocityFilter
 
 class DistanceAnomalyScore(Distance):
     """
-    Class to deal with the outliers based on a generative model trained with
-    tensorflow.keras and distance metrics different from metrics based on
-    reconstruction residuals
+    Class to deal with the outliers based on a generative model
+    trained with tensorflow.keras and distance metrics different
+    from metrics based on reconstruction residuals
     """
 
     def __init__(
         self,
         reconstruct_function,
         filter_parameters: namedtuple,
+        percentage: int = 100,
     ):
 
         """
@@ -49,7 +50,9 @@ class DistanceAnomalyScore(Distance):
 
         self.filter_lines = velocity_filter != 0
 
-        super().__init__()
+        super().__init__(
+            percentage=percentage,
+        )
 
     def score(self, observation: np.array, metric: str) -> np.array:
         """Compute reconstruction error"""
@@ -80,11 +83,6 @@ class DistanceAnomalyScore(Distance):
         if metric == "cosine":
 
             anomaly_score = super().cosine(observation, reconstruction)
-            return anomaly_score.reshape((-1, 1))
-
-        if metric == "braycurtis":
-
-            anomaly_score = super().braycurtis(observation, reconstruction)
             return anomaly_score.reshape((-1, 1))
 
         print(f"{metric} not implemented")

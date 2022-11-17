@@ -1,5 +1,6 @@
 """
-Module with functionality to compute anomaly scores based on reconstructions
+Module with functionality to compute anomaly scores based
+on reconstructions
 """
 from collections import namedtuple
 import sys
@@ -108,7 +109,9 @@ class ReconstructionAnomalyScore(Reconstruction):
 
         if metric == "braycurtis":
 
-            anomaly_score = super().braycurtis(observation, reconstruction)
+            anomaly_score = super().braycurtis(
+                observation, reconstruction
+            )
             return anomaly_score.reshape((-1, 1))
 
         print(f"{metric} not implemented")
