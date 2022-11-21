@@ -2,7 +2,6 @@
 Plot spectra, their reconstruction, their residuas
 and filters to inspect anomalous behaviors
 """
-import matplotlib.pyplot as plt
 import numpy as np
 
 from anomaly.constants import GALAXY_LINES
@@ -12,12 +11,9 @@ def inspect_reconstruction(
     wave: np.array,
     observation: np.array,
     reconstruction: np.array,
-    fig,
     axs,
-    format: str,
-    save_to: str,
-    rank: int,
 ):
+    """inspect reconstruction"""
 
     residuals = observation - reconstruction
 
@@ -45,6 +41,3 @@ def inspect_reconstruction(
         color="blue",
         lw=1.5,
     )
-
-    fig.savefig(f"{save_to}/rank_{rank:04d}.{format}")
-    fig.savefig(f"{save_to}/rank_{rank:04d}.pdf")
