@@ -197,15 +197,15 @@ def set_difference(specobjids: set, intersection_specobjids: set) -> set:
         specobjids with other sets
     """
 
-    set_difference = specobjids.difference(intersection_specobjids)
+    set_difference_ = specobjids.difference(intersection_specobjids)
 
-    return set_difference
+    return set_difference_
 
 
 def line_width_from_velocity(velocity: float, line_wavelength: float) -> float:
 
     """
-    Get the width of a line in $\AA$ accoring to the input
+    Get the width of a line in Angstrom accoring to the input
     rotational velocity.
 
     INPUT
@@ -214,7 +214,7 @@ def line_width_from_velocity(velocity: float, line_wavelength: float) -> float:
         e.g $H_{\alpha}$ = 6562
 
     OUTPUT
-    line_width: width of line in $\AA$
+    line_width: width of line in Angstrom
     """
 
     # convert light speed to kms-1
