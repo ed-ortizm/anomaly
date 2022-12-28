@@ -11,31 +11,31 @@ class Distance:
     def __init__(self):
         pass
 
-    # @staticmethod
-    # def braycurtis(
-    #     observation: np.array, reconstruction: np.array
-    # ) -> np.array:
+    @staticmethod
+    def braycurtis(
+        observation: np.array, reconstruction: np.array
+    ) -> np.array:
 
-    #     """
-    #     Compute Bray Curtis distance between observation and reconstruction.
-    #     bc: |observation - reconstruction| / |observation + reconstruction|
+        """
+        Compute Bray Curtis distance between observation and reconstruction.
+        bc: |observation - reconstruction| / |observation + reconstruction|
 
-    #     PARAMETERS
-    #         observation: array with the origin of fluxes
-    #         reconstruction: the reconstruction of the input observations.
-    #         p:
+        PARAMETERS
+            observation: array with the origin of fluxes
+            reconstruction: the reconstruction of the input observations.
+            p:
 
-    #     OUTPUT
-    #         anomaly_score: of the input observation
-    #     """
+        OUTPUT
+            anomaly_score: of the input observation
+        """
 
-    #     observation = observation.astype(dtype=float)
-    #     reconstruction = reconstruction.astype(dtype=float)
+        observation = observation.astype(dtype=float)
+        reconstruction = reconstruction.astype(dtype=float)
 
-    #     score = np.sum(np.abs(observation - reconstruction), axis=1)
-    #     score *= 1/np.sum(np.abs(observation + reconstruction), axis=1)
+        score = np.sum(np.abs(observation - reconstruction), axis=1)
+        score *= 1/np.sum(np.abs(observation + reconstruction), axis=1)
 
-    #     return score
+        return score
     # def braycurtis(
     #     self, observation: np.array, reconstruction: np.array
     # ) -> np.array:
