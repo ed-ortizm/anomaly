@@ -1,5 +1,6 @@
 """
-Module with functionality to compute anomaly scores based on reconstructions
+Module with functionality to compute anomaly scores based
+on reconstructions
 """
 from collections import namedtuple
 import sys

@@ -8,75 +8,12 @@ class Distance:
     distance between observation and reconstruction
     """
 
-    def __init__(self):
-        pass
+    def __init__(self, percentage: int):
 
-    @staticmethod
-    def braycurtis(
-        observation: np.array, reconstruction: np.array
-    ) -> np.array:
+        self.percentage = percentage
 
-        """
-        Compute Bray Curtis distance between observation and reconstruction.
-        bc: |observation - reconstruction| / |observation + reconstruction|
-
-        PARAMETERS
-            observation: array with the origin of fluxes
-            reconstruction: the reconstruction of the input observations.
-            p:
-
-        OUTPUT
-            anomaly_score: of the input observation
-        """
-
-        observation = observation.astype(dtype=float)
-        reconstruction = reconstruction.astype(dtype=float)
-
-        score = np.sum(np.abs(observation - reconstruction), axis=1)
-        score *= 1/np.sum(np.abs(observation + reconstruction), axis=1)
-
-        return score
-    # def braycurtis(
-    #     self, observation: np.array, reconstruction: np.array
-    # ) -> np.array:
-
-    #     """
-    #     Compute Bray Curtis distance between observation and reconstruction.
-    #     bc: |observation - reconstruction| / |observation + reconstruction|
-
-    #     PARAMETERS
-    #         observation: array with the origin of fluxes
-    #         reconstruction: the reconstruction of the input observations.
-    #         p:
-
-    #     OUTPUT
-    #         anomaly_score: of the input observation
-    #     """
-
-    #     observation = observation.astype(dtype=float)
-    #     reconstruction = reconstruction.astype(dtype=float)
-
-    #     flux_diff = np.abs(observation - reconstruction)
-    #     flux_diff = self._update_dimensions(flux_diff)
-
-    #     flux_add = np.abs(observation + reconstruction)
-    #     flux_add = self._update_dimensions(flux_add)
-
-    #     smallest_error_ids = self._get_smallest_ids(
-    #         flux_diff, self.percentage)
-    #     # set size of score array to number of spectra present in array
-    #     score = np.empty((flux_diff.shape[0],))
-
-    #     for idx, reconstruction_id in enumerate(smallest_error_ids):
-
-    #         score[idx] = np.sum(flux_diff[idx, reconstruction_id])
-    #         score[idx] *= 1 / np.sum(flux_add[idx, reconstruction_id])
-
-    #     return score.reshape(-1, 1)
-
-    @staticmethod
     def correlation(
-        observation: np.array, reconstruction: np.array
+        self, observation: np.array, reconstruction: np.array
     ) -> np.array:
 
         """
@@ -100,6 +37,10 @@ class Distance:
         observation = observation.astype(dtype=float)
         observation -= np.mean(observation, axis=1, keepdims=True)
 
+        observation, reconstruction = self._smallest_residuals(
+            observation, reconstruction
+        )
+
         reconstruction = reconstruction.astype(dtype=float)
         reconstruction -= np.mean(reconstruction, axis=1, keepdims=True)
 
@@ -114,8 +55,9 @@ class Distance:
 
         return score
 
-    @staticmethod
-    def cosine(observation: np.array, reconstruction: np.array) -> np.array:
+    def cosine(
+        self, observation: np.array, reconstruction: np.array
+    ) -> np.array:
 
         """
         Compute cosine distance between observation and reconstruction
@@ -132,6 +74,10 @@ class Distance:
         observation = observation.astype(dtype=float)
         reconstruction = reconstruction.astype(dtype=float)
 
+        observation, reconstruction = self._smallest_residuals(
+            observation, reconstruction
+        )
+
         dot_product = np.sum(observation * reconstruction, axis=1)
 
         observation_norm = np.linalg.norm(observation, axis=1)
@@ -142,6 +88,90 @@ class Distance:
         score = 1 - score
 
         return score
+
+    def braycurtis(
+        self, observation: np.array, reconstruction: np.array
+    ) -> np.array:
+
+        """
+        Compute Bray Curtis distance between observation and reconstruction.
+        bc: |observation - reconstruction| / |observation + reconstruction|
+
+        PARAMETERS
+            observation: array with the origin of fluxes
+            reconstruction: the reconstruction of the input observations.
+            p:
+
+        OUTPUT
+            anomaly_score: of the input observation
+        """
+
+        observation = observation.astype(dtype=float)
+        reconstruction = reconstruction.astype(dtype=float)
+
+        observation, reconstruction = self._smallest_residuals(
+            observation, reconstruction
+        )
+
+        flux_diff = np.abs(observation - reconstruction)
+        flux_add = np.abs(observation + reconstruction)
+
+        score = np.sum(flux_diff, axis=1)/np.sum(flux_add, axis=1)
+
+        return score.reshape(-1, 1)
+
+    def _smallest_residuals(
+        self, observation: np.array, reconstruction: np.array
+    ) -> tuple[np.array, np.array]:
+
+        flux_diff = np.abs(observation - reconstruction)
+        smallest_error_ids = self._get_smallest_ids(flux_diff)
+
+        for idx, residual_id in enumerate(smallest_error_ids):
+
+            observation[idx, :] = observation[idx, residual_id]
+            reconstruction[idx, :] = reconstruction[idx, residual_id]
+
+        return observation, reconstruction
+
+    def _get_smallest_ids(self, flux_diff: np.array) -> np.array:
+
+        """
+        Compute the ids of the pixels with the smallest reconstruction
+            errors. If percentage is 100, then it does nothing.
+            If percentage is 30%, for instance, it returns the ids of
+            30% of the pixels with the smalles reconstruction errors.
+
+        PARAMETERS
+            flux_diff: array with reconstruction errors
+                flux by flux
+            percentage: of fluxes with the highest contribution to the
+                anomaly score
+        OUTPUT
+            largest_reconstruction_error_ids: ids with the percentage
+                of pixels with the highest reconstruction errors
+        """
+
+        number_fluxes = flux_diff.shape[1]
+
+        if self.percentage != 100:
+
+            number_fluxes = int(0.01 * self.percentage * number_fluxes)
+
+            smallest_residuals_ids = np.argpartition(
+                flux_diff, number_fluxes, axis=1
+            )[:, :number_fluxes]
+
+        else:
+
+            smallest_residuals_ids = np.array(
+                [
+                    np.arange(0, number_fluxes)
+                    for _ in range(flux_diff.shape[0])
+                ]
+            )
+
+        return smallest_residuals_ids
 
 
 class Reconstruction:
@@ -234,7 +264,7 @@ class Reconstruction:
             # observation --> reconstruction
             # expected value --> observation
             # notation is a misleading :s
-            relative_weight = (1.0 + np.abs(observation)) ** p
+            relative_weight = observation + self.epsilon
             flux_diff *= 1.0 / relative_weight
 
         anomaly_score = np.sum(flux_diff, axis=1, keepdims=True) ** (1 / p)
