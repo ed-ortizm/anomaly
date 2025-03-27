@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "anomaly"
+version = "0.0.1"
+description = "Python code to compute anomaly scores"
+readme = "README.md"
+authors = [{ name = "Edgar Ortiz", email = "ed.ortizm@gmail.com" }]
+license = { text = "MIT" }
+keywords = ["astrophysics", "galaxy", "Machine Learning", "anomaly detection"]
+dependencies = []
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["[a-z]*"]
