@@ -4,7 +4,8 @@ from collections import namedtuple
 
 import numpy as np
 import scipy.constants as cst
-from skimage.color import gray2rgb  # convert spectra to 3 channels
+# pylint: disable=E0611
+from skimage.color import gray2rgb
 
 from anomaly.constants import GALAXY_LINES
 
