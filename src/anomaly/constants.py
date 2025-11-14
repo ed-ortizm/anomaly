@@ -14,3 +14,17 @@ GALAXY_LINES = {
     "SII_6730": 6730.812,
     # ABSORPTION
 }
+# convert previous dict to nanometers
+GALAXY_LINES_NM = {
+    'OII_3726': 372.6,
+    'H_delta_4101': 410.17,
+    'H_gamma_4340': 434.05,
+    'H_beta_4861': 486.14,
+    'OIII_4959': 495.89,
+    'OIII_5006': 500.68,
+    'NII_6548': 654.8,
+    'H_alpha_6562': 656.28,
+    'NII_6583': 658.35,
+    'SII_6716': 671.64,
+    'SII_6730': 673.08
+}
