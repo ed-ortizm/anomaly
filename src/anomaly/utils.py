@@ -106,7 +106,7 @@ class VelocityFilter:
         c = cst.c * 1e-3  # [km/s]
         alpha = self.velocity_filter / c  # filter width
 
-        velocity_mask = np.ones(self.wave.size, dtype=np.bool)
+        velocity_mask = np.ones(self.wave.size, dtype=bool)
 
         for line in self.lines:
 
