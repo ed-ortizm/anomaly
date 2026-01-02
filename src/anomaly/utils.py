@@ -47,7 +47,6 @@ def spectra_to_batch_image(spectra):
 
     return spectra
 
-
 class VelocityFilter:
     """
     Handle filter operations according to provided lines and
@@ -106,7 +105,7 @@ class VelocityFilter:
         c = cst.c * 1e-3  # [km/s]
         alpha = self.velocity_filter / c  # filter width
 
-        velocity_mask = np.ones(self.wave.size, dtype=np.bool)
+        velocity_mask = np.ones(self.wave.size, dtype=bool)
 
         for line in self.lines:
 
@@ -118,7 +117,6 @@ class VelocityFilter:
             velocity_mask *= line_mask
 
         return velocity_mask
-
 
 def specobjid_to_idx(specobjid: int, ids: np.array) -> int:
     """
@@ -143,66 +141,6 @@ def specobjid_to_idx(specobjid: int, ids: np.array) -> int:
 
     return idx
 
-
-def set_intersection(specobjids: dict, max_rank: int, min_rank: int) -> set:
-
-    """
-    Interset sets of specobjids
-
-    INPUT
-    specobjids: dictionary with arrays of specobjids ordered by anomalous
-        rank
-        key: score name, e.g, lp_noRel100
-        value: set with specobjid of spectra
-    max_rank: the (max_rank+1)^{th} most anomalous spectrum
-    min_rank: the (min_rank+1)^{th} most anomalous spectrum
-        If the rank is 0 then it is the most anomalous spectrum
-        If the rank is 1,then it is the second mosth anomalous spectrum...
-    """
-    score_names = list(specobjids.keys())
-    # Adjust ranks
-    if min_rank == 0:
-
-        specobjids = {
-            score_name: specobjids[score_name][-max_rank:]
-            for score_name in score_names
-        }
-
-    else:
-
-        specobjids = {
-            score_name: specobjids[score_name][-max_rank:-min_rank]
-            for score_name in score_names
-        }
-
-    # get a set of any score
-    intersection_set = set(specobjids[score_names[0]])
-
-    for score_name in score_names:
-
-        intersection_set = intersection_set.intersection(
-            set(specobjids[score_name])
-        )
-
-    return intersection_set
-
-
-def set_difference(specobjids: set, intersection_specobjids: set) -> set:
-    """
-    Return the set diffrerence between specobjids and a set that
-    came from the intersection with other sets
-
-    INPUTS
-    specobjids: set with ids that was used for an intersection
-    intersection_specobjids: set from the intersection of
-        specobjids with other sets
-    """
-
-    set_difference_ = specobjids.difference(intersection_specobjids)
-
-    return set_difference_
-
-
 def line_width_from_velocity(velocity: float, line_wavelength: float) -> float:
 
     """
@@ -224,3 +162,69 @@ def line_width_from_velocity(velocity: float, line_wavelength: float) -> float:
     line_width = 2 * (velocity / c) * line_wavelength
 
     return line_width
+
+class AnomalyOverlapAnalyzer:
+    """
+    A utility class for performing set operations (intersections, differences)
+    on anomaly detection scores.
+    """
+
+    def __init__(self):
+        # As requested, no input arguments are needed for initialization
+        pass
+
+    @staticmethod
+    def overlap_pair_scores(score_a, score_b, df, quantile=99):
+        """
+        Computes the overlap and differences between the top percentile 
+        of two specific scores.
+        """
+        # Convert integer quantile (e.g., 99) to float (0.99)
+        q_val = quantile * 0.01
+
+        thresh_a = df[score_a].quantile(q_val)
+        thresh_b = df[score_b].quantile(q_val)
+
+        ids_a = set(df[df[score_a] > thresh_a].index)
+        ids_b = set(df[df[score_b] > thresh_b].index)
+
+        # 1. Intersection (objects present in BOTH sets)
+        common_ids = ids_a.intersection(ids_b)
+
+        # 2. Non-Common (Unique to each score)
+        only_in_a = ids_a - ids_b  # Present in A, but NOT in B
+        only_in_b = ids_b - ids_a  # Present in B, but NOT in A
+
+        return ids_a, ids_b, common_ids, only_in_a, only_in_b
+
+    @staticmethod
+    def get_unique_ids(ids_dict, score_list):
+        """
+        Identifies IDs unique to each score within a specific group of scores.
+        (e.g., found by 'mse' but NOT by any other score in the list).
+        """
+        unique_ids_dict = {}
+
+        for target in score_list:
+            # Collect all sets EXCEPT the current target
+            other_sets = [ids_dict[k] for k in score_list if k != target]
+
+            # Subtract all other sets from the target set
+            unique_ids_dict[target] = ids_dict[target].difference(*other_sets)
+
+        return unique_ids_dict
+
+    @staticmethod
+    def get_core_common_ids(ids_dict, score_list):
+        """
+        Identifies IDs that are present in ALL sets for the provided
+        list of scores.
+        (The intersection of the entire group).
+        """
+        # Collect all sets corresponding to the score list
+        all_sets = [ids_dict[k] for k in score_list]
+
+        # Compute the intersection of the entire group
+        core_common_ids = set.intersection(*all_sets)
+
+        return core_common_ids
