@@ -1,3 +1,16 @@
+"""Compute anomaly scores for thesis"""
+import os
+# Set environment variables to disable multithreading
+# as users will probably want to set the number of cores
+# to the max of their computer.
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["OPENBLAS_NUM_THREADS"] = "1"
+os.environ["MKL_NUM_THREADS"] = "1"
+os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
+os.environ["NUMEXPR_NUM_THREADS"] = "1"
+
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
+
 import numpy as np
 import scipy.constants as cst
 
@@ -13,7 +26,8 @@ def compute_mse_scores(spectra: np.ndarray, rec_spectra: np.ndarray):
 
     Args:
         spectra (np.ndarray): Original input spectra (N_samples, N_features).
-        rec_spectra (np.ndarray): Reconstructed spectra from the model (N_samples, N_features).
+        rec_spectra (np.ndarray): Reconstructed spectra from the model
+        (N_samples, N_features).
 
     Returns:
         tuple: A tuple containing 4 numpy arrays (N_samples, 1) in this order:
