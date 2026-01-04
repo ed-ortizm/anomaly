@@ -19,7 +19,7 @@ from anomaly.utils import FilterParameters, ReconstructionParameters
 from autoencoders.ae import AutoEncoder
 
 
-np.seed(0)
+np.random.seed(42)
 
 bin_id = 'bin_03'
 
@@ -35,10 +35,12 @@ ae_model = AutoEncoder(
     reload_from=f"{models_dir}/{bin_id}/winner",
 )
 
+print('Load data')
 spec_bin = np.load(
     f"/home/eortiz/spectra/{bin_id}/{bin_id}_fluxes.npy",
 )
 
+print('Reconstruct data')
 rec_spec_bin = ae_model.reconstruct(spec_bin)
 
 np.save(
@@ -79,6 +81,16 @@ for isrel in isrel_list:
             else:
                 pct_str = ""
 
+            score_name = score_head_name
+            if vel_str != "":
+                score_name += f"_{vel_str}"
+            if pct_str != "":
+                score_name += f"_{pct_str}"
+            if rel_str != "":
+                score_name += f"_{rel_str}"
+
+            print(f"Compute score: {score_name}")
+
             scoring_fn = ReconstructionAnomalyScore(
                 reconstruct_function= ae_model.reconstruct,
                 filter_parameters=FilterParameters(
@@ -94,15 +106,7 @@ for isrel in isrel_list:
                 spec_bin, metric='mse'
             )
 
-            score_name = score_head_name
-            if vel_str != "":
-                score_name += f"_{vel_str}"
-            if pct_str != "":
-                score_name += f"_{pct_str}"
-            if rel_str != "":
-                score_name += f"_{rel_str}"
-
-            print(f"Save score: {score_name}")
+            print('Save score')
 
             np.save(
                 f"{scores_dir}/{bin_id}/{score_name}.npy",
