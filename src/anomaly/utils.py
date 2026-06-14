@@ -4,15 +4,15 @@ from collections import namedtuple
 
 import numpy as np
 import scipy.constants as cst
+
 # pylint: disable=E0611
 from skimage.color import gray2rgb
 
 from anomaly.constants import GALAXY_LINES
+from sdss.metadata import MetaData
 
-
-FilterParameters = namedtuple(
-    "FilterParameters", ["wave", "velocity_filter", "lines"]
-)
+meta = MetaData()
+FilterParameters = namedtuple("FilterParameters", ["wave", "velocity_filter", "lines"])
 
 ReconstructionParameters = namedtuple(
     "ReconstructionParameters", ["relative", "percentage", "epsilon"]
@@ -47,6 +47,7 @@ def spectra_to_batch_image(spectra):
 
     return spectra
 
+
 class VelocityFilter:
     """
     Handle filter operations according to provided lines and
@@ -65,7 +66,6 @@ class VelocityFilter:
         self.velocity_filter = velocity_filter
 
     def filter(self, spectra: np.array) -> tuple:
-
         """
         PARAMETERS
             observation: array with the origin of fluxes
@@ -86,7 +86,6 @@ class VelocityFilter:
         return spectra
 
     def get_velocity_filter_mask(self) -> np.array:
-
         """
         Compute array with filters for narrow emission lines
         PARAMETERS
@@ -118,6 +117,7 @@ class VelocityFilter:
 
         return velocity_mask
 
+
 def specobjid_to_idx(specobjid: int, ids: np.array) -> int:
     """
     Obtain index of spectrum in array that contains all
@@ -141,8 +141,8 @@ def specobjid_to_idx(specobjid: int, ids: np.array) -> int:
 
     return idx
 
-def line_width_from_velocity(velocity: float, line_wavelength: float) -> float:
 
+def line_width_from_velocity(velocity: float, line_wavelength: float) -> float:
     """
     Get the width of a line in Angstrom accoring to the input
     rotational velocity.
@@ -163,6 +163,7 @@ def line_width_from_velocity(velocity: float, line_wavelength: float) -> float:
 
     return line_width
 
+
 class AnomalyOverlapAnalyzer:
     """
     A utility class for performing set operations (intersections, differences)
@@ -176,7 +177,7 @@ class AnomalyOverlapAnalyzer:
     @staticmethod
     def overlap_pair_scores(score_a, score_b, df, quantile=99):
         """
-        Computes the overlap and differences between the top percentile 
+        Computes the overlap and differences between the top percentile
         of two specific scores.
         """
         # Convert integer quantile (e.g., 99) to float (0.99)
@@ -228,3 +229,20 @@ class AnomalyOverlapAnalyzer:
         core_common_ids = set.intersection(*all_sets)
 
         return core_common_ids
+
+
+def get_sdss_spec_img(specobjid, ra, dec, save_to):
+    """Download sdss image and spectrum"""
+
+    meta.download_sdss_spectrum_image(
+        specobjid=specobjid,
+        save_to=save_to,
+        image_format="jpeg",
+    )
+
+    meta.get_sdss_image(
+        specobjid,
+        coordinates=(ra, dec),
+        save_to=save_to,
+        image_format="jpeg",
+    )
