@@ -14,179 +14,85 @@ def add_line_indicators(
     spec,
     indicator_starts,
     indicator_height,
-    add_oii=False,
-    add_ne3_he1=False,
-    add_h_epsilon=False,
-    add_h_delta=False,
-    add_h_gamma=False,
-    add_oiii=False,
-    add_h_beta=False,
-    add_sii=False,
+    active_lines=None,
     delta=1,
     indicator_color="blue",
     indicator_label_color="black",
-    lw=1.5,
-    fontsize=8,
+    lw=1,
+    fontsize=6,
 ):
     """
-    Add line indicators to the spectrum plot
+    Add line indicators to the spectrum plot.
     """
+
+    # lines to add
+    if active_lines is None:
+        active_lines = []
+
+    # plot and text logic
+    def _draw_line(wave, label, y_start, y_end, label_x=None, label_y=None):
+        ax.plot([wave, wave], [y_start, y_end], color=indicator_color, lw=lw, zorder=3)
+        if label:
+            ax.text(
+                label_x or wave,
+                label_y or (y_end + indicator_height / 2),
+                label,
+                ha="center",
+                va="bottom",
+                fontsize=fontsize,
+                rotation=90,
+                color=indicator_label_color,
+                zorder=4,
+            )
 
     for line_name, value_dict in GALAXY_LINES_NM_NAMES.items():
 
-        # skip desired lines
-        if line_name == "OII" and add_oii is False:
-            continue
-
-        if line_name == "H_epsilon" and add_h_epsilon is False:
-            continue
-
-        if line_name == "H_delta" and add_h_delta is False:
-            continue
-
-        if line_name == "H_gamma" and add_h_gamma is False:
-            continue
-
-        if line_name == "H_beta" and add_h_beta is False:
-            continue
-
-        if line_name == "OIII" and add_oiii is False:
-            continue
-
-        if line_name == "SII" and add_sii is False:
+        # Skip if the line wasn't requested.
+        # Skip NeIII and HeI: handled together at the bottom.
+        if line_name not in active_lines or line_name in ["NeIII", "HeI"]:
             continue
 
         line_wave = value_dict["line_wave"]
-        # Find the flux value of the spectrum at the line's wavelength
-        # get small neigborhood among line_wave
-        # get max flux there and set as line_flux
-        line_flux = np.max(
-            spec[(wave_nm > line_wave - delta) & (wave_nm < line_wave + delta)]
-        )
-
-        # Plot vertical line indicator
-        y_start_indicator = line_flux + indicator_starts
-        y_end_indicator = y_start_indicator + indicator_height
-
-        ax.plot(
-            [line_wave, line_wave],
-            [y_start_indicator, y_end_indicator],
-            color=indicator_color,
-            lw=lw,
-            zorder=3,
-        )
-
         clean_name = value_dict["name"]
 
-        y_text_start = y_end_indicator + indicator_height / 2
+        # Calculate local max flux
+        mask = (wave_nm > line_wave - delta) & (wave_nm < line_wave + delta)
+        line_flux = np.max(spec[mask]) if np.any(mask) else 0
 
-        ax.text(
-            line_wave,
-            y_text_start,
-            clean_name,
-            ha="center",
-            va="bottom",
-            fontsize=fontsize,
-            rotation=90,
-            color=indicator_label_color,
-            zorder=4,
-        )
+        y_start = line_flux + indicator_starts
+        y_end = y_start + indicator_height
 
-        # doubles manual setup
+        # Draw the primary line
+        _draw_line(line_wave, clean_name, y_start, y_end)
+
+        # Handle secondary lines
         if line_name == "OIII":
-            ax.plot(
-                [495.9, 495.9],
-                [y_start_indicator, y_end_indicator],
-                color=indicator_color,
-                lw=lw,
-                zorder=3,
-            )
+            _draw_line(495.9, None, y_start, y_end)
 
-        if line_name == "H_alpha":
+        elif line_name == "H_alpha":
+            # NII lines get shifted down slightly to prevent overlapping text
+            y_nii_start = y_start - indicator_height / 2
+            y_nii_end = y_end - indicator_height / 2
+            _draw_line(654.8, "NII", y_nii_start, y_nii_end, label_x=649)
+            _draw_line(658.3, "NII", y_nii_start, y_nii_end, label_x=664.1)
 
-            y_nii_start = y_start_indicator - indicator_height / 2
-            y_nii_end = y_end_indicator - indicator_height / 2
+        elif line_name == "SII":
+            _draw_line(671.6, None, y_start, y_end)
 
-            # NII 1st
-            ax.plot(
-                [654.8, 654.8],
-                [y_nii_start, y_nii_end],
-                color=indicator_color,
-                lw=lw,
-                zorder=3,
-            )
-            y_nii_text = y_nii_end + indicator_height / 2
-            ax.text(
-                649,
-                y_nii_text,
-                "NII",
-                ha="center",
-                va="bottom",
-                fontsize=fontsize,
-                rotation=90,
-                color=indicator_label_color,
-                zorder=4,
-            )
+    # Handle the custom combined NeIII + He I logic
+    if "NeIII" in active_lines or "HeI" in active_lines:
+        mask = (wave_nm > 386.9 - delta) & (wave_nm < 388.9 + delta)
+        line_flux = np.max(spec[mask]) if np.any(mask) else 0
+        y_start = line_flux + indicator_starts
+        y_end = y_start + indicator_height
 
-            # NII 2nd
-            ax.plot(
-                [658.3, 658.3],
-                [y_nii_start, y_nii_end],
-                color=indicator_color,
-                lw=lw,
-                zorder=3,
-            )
+        _draw_line(386.9, None, y_start, y_end)
+        _draw_line(388.9, None, y_start, y_end)
 
-            ax.text(
-                664.1,
-                y_nii_text,
-                "NII",
-                ha="center",
-                va="bottom",
-                fontsize=fontsize,
-                rotation=90,
-                color=indicator_label_color,
-                zorder=4,
-            )
-
-        if line_name == "SII":
-            ax.plot(
-                [671.6, 671.6],
-                [y_start_indicator, y_end_indicator],
-                color=indicator_color,
-                lw=lw,
-                zorder=3,
-            )
-
-    # optionally add NeIII-1 and He I
-    if add_ne3_he1 is True:
-
-        line_flux = np.max(spec[(wave_nm > 386.9 - delta) & (wave_nm < 388.9 + delta)])
-        y_start_indicator = line_flux + indicator_starts
-        y_end_indicator = y_start_indicator + indicator_height
-
-        # add indicator for NeIII 386.9
-        ax.plot(
-            [386.9, 386.9],
-            [y_start_indicator, y_end_indicator],
-            color=indicator_color,
-            lw=lw,
-            zorder=3,
-        )
-        # add indicator for HI 388.9
-        ax.plot(
-            [388.9, 388.9],
-            [y_start_indicator, y_end_indicator],
-            color=indicator_color,
-            lw=lw,
-            zorder=3,
-        )
-        # add label NeIII + He I
-        y_text_start = y_end_indicator + indicator_height / 2
-
+        # Add the combined text label exactly in the middle
         ax.text(
             387.9,
-            y_text_start,
+            y_end + indicator_height / 2,
             "NeIII + HeI",
             ha="center",
             va="bottom",
