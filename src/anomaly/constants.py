@@ -33,7 +33,7 @@ GALAXY_LINES_NM = {
 GALAXY_LINES_NM_NAMES = {
     "OII": {"name": "OII", "line_wave": 372.7},
     "NeIII": {"name": "NeIII", "line_wave": 386.9},
-    "HI": {"name": "HI", "line_wave": 388.9},
+    "HeI": {"name": "HeI", "line_wave": 388.9},
     "H_epsilon": {"name": r"H$\epsilon$", "line_wave": 397},
     "H_delta": {"name": r"H$\delta$", "line_wave": 410.2},
     "H_gamma": {"name": r"H$\gamma$", "line_wave": 434.0},
