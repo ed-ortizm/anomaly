@@ -48,8 +48,7 @@ def add_line_indicators(
     for line_name, value_dict in GALAXY_LINES_NM_NAMES.items():
 
         # Skip if the line wasn't requested.
-        # Skip NeIII and HeI: handled together at the bottom.
-        if line_name not in active_lines or line_name in ["NeIII", "HeI"]:
+        if line_name not in active_lines:
             continue
 
         line_wave = value_dict["line_wave"]
@@ -79,29 +78,6 @@ def add_line_indicators(
         elif line_name == "SII":
             _draw_line(671.6, None, y_start, y_end)
 
-    # Handle the custom combined NeIII + He I logic
-    if "NeIII" in active_lines or "HeI" in active_lines:
-        mask = (wave_nm > 386.9 - delta) & (wave_nm < 388.9 + delta)
-        line_flux = np.max(spec[mask]) if np.any(mask) else 0
-        y_start = line_flux + indicator_starts
-        y_end = y_start + indicator_height
-
-        _draw_line(386.9, None, y_start, y_end)
-        _draw_line(388.9, None, y_start, y_end)
-
-        # Add the combined text label exactly in the middle
-        ax.text(
-            387.9,
-            y_end + indicator_height / 2,
-            "NeIII + HeI",
-            ha="center",
-            va="bottom",
-            fontsize=fontsize,
-            rotation=90,
-            color=indicator_label_color,
-            zorder=4,
-        )
-
     return ax
 
 
@@ -113,11 +89,12 @@ def spec_photo_thumbnail(
     width_height_image="100%",
     bbox_to_anchor=(0.695, 0.52, 0.5, 0.5),
     add_image=False,
+    lw=1.2,
 ) -> tuple:
     """
     Plot spectrum and optionally add a thumbnail of the photo
     """
-    ax.plot(wave_nm, spec, color="black")
+    ax.plot(wave_nm, spec, color="black", lw=lw)
     # Create inset in top-right corner of figure
 
     if add_image is False:

@@ -39,6 +39,7 @@ GALAXY_LINES_NM_NAMES = {
     "H_gamma": {"name": r"H$\gamma$", "line_wave": 434.0},
     "H_beta": {"name": r"H$\beta$", "line_wave": 486.1},
     "OIII": {"name": "OIII", "line_wave": 500.7},
+    "OI": {"name": "OI", "line_wave": 630.0},
     "H_alpha": {"name": r"H$\alpha$", "line_wave": 656.3},
     "SII": {"name": "SII", "line_wave": 673},
     # 'SII': 671.6
