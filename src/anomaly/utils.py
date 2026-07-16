@@ -3,6 +3,7 @@
 from collections import namedtuple
 
 import numpy as np
+import pandas as pd
 import scipy.constants as cst
 
 # pylint: disable=E0611
@@ -229,6 +230,140 @@ class AnomalyOverlapAnalyzer:
         core_common_ids = set.intersection(*all_sets)
 
         return core_common_ids
+
+    @staticmethod
+    def get_ids_set(
+        score: str,
+        df: pd.DataFrame,
+        quantile: int = 99,
+        n_top: int = None,
+        use_ntop: bool = False,
+    ) -> set:
+        """
+        Get the set of IDs based on the specified score and selection criteria.
+
+        Parameters:
+        - score: The score column to consider.
+        - df: The DataFrame containing the data.
+        - quantile: The top quantile to consider (default is 99).
+        - n_top: The number of top entries to consider if use_ntop is True.
+        - use_ntop: Whether to use the top-n selection instead of quantile.
+
+        Returns:
+        - A set of IDs meeting the selection criteria.
+        """
+
+        if use_ntop is False:
+
+            quantile *= 0.01
+            thresh = df[score].quantile(quantile)
+            ids = set(df[df[score] > thresh].index)
+
+        else:
+
+            ids = set(df[score].sort_values(ascending=False).iloc[:n_top].index)
+
+        return ids
+
+    @staticmethod
+    def top_unique_ids(
+        scores_df: pd.DataFrame,
+        scores_list: list,
+        quantile=99,
+        n_top: int = None,
+        use_ntop: bool = False,
+    ):
+        """
+        Get the unique IDs for each score in the provided list based on the
+        specified selection criteria (quantile or top-n).
+        Returns:
+        - unique_ids_dict: Dictionary of unique IDs for each score.
+        - ids_top_dict: Dictionary of top IDs for each score.
+        - n_dictinct_top: Number of distinct top IDs.
+        """
+
+        ids_top_dict = {}
+
+        ids_top_list = []
+
+        for score in scores_list:
+
+            ids_set = AnomalyOverlapAnalyzer.get_ids_set(
+                score=score,
+                df=scores_df,
+                quantile=quantile,
+                n_top=n_top,
+                use_ntop=use_ntop,
+            )
+
+            ids_top_dict[score] = ids_set
+
+            ids_top_list += list(ids_set)
+
+        n_dictinct_top = len(set(ids_top_list))
+
+        print(f"N unique: {n_dictinct_top}")
+
+        unique_ids_dict = AnomalyOverlapAnalyzer.get_unique_ids(
+            ids_dict=ids_top_dict, score_list=scores_list
+        )
+
+        for score in scores_list:
+            n_unique = len(unique_ids_dict[score])
+
+            unique_pct = n_unique / n_dictinct_top * 100
+
+            print(f"Unique to {score}:\n{n_unique} --> {unique_pct:.4f}%")
+
+        return unique_ids_dict, ids_top_dict, n_dictinct_top
+
+    @staticmethod
+    def top_common_ids(
+        scores_df: pd.DataFrame,
+        scores_list: list,
+        quantile=99,
+        n_top: int = None,
+        use_ntop: bool = False,
+    ):
+        """
+        Get the common IDs across all scores in the provided list based on the
+        specified selection criteria (quantile or top-n).
+        Returns:
+        - common_ids_set: Set of common IDs across all scores.
+        - ids_top_dict: Dictionary of top IDs for each score.
+        - n_dictinct_top: Number of distinct top IDs.
+        - n_common: Number of common IDs across all scores.
+        """
+
+        ids_top_dict = {}
+        ids_top_list = []
+
+        for score in scores_list:
+
+            ids_set = AnomalyOverlapAnalyzer.get_ids_set(
+                score=score,
+                df=scores_df,
+                quantile=quantile,
+                n_top=n_top,
+                use_ntop=use_ntop,
+            )
+
+            ids_top_dict[score] = ids_set
+
+            ids_top_list += list(ids_set)
+
+        n_dictinct_top = len(set(ids_top_list))
+        print(f"N unique: {n_dictinct_top}")
+
+        common_ids_set = AnomalyOverlapAnalyzer.get_core_common_ids(
+            ids_dict=ids_top_dict, score_list=scores_list
+        )
+
+        n_common = len(common_ids_set)
+        common_pct = n_common / n_dictinct_top * 100
+        print(f"N common:\n{n_common} --> {common_pct:.4f}%")
+
+        return common_ids_set, ids_top_dict, n_dictinct_top, n_common
 
 
 def get_sdss_spec_img(specobjid, ra, dec, save_to):
