@@ -1,4 +1,5 @@
 """iForest Hyperparameter Search Script"""
+
 import argparse
 import configparser
 from itertools import product
@@ -10,6 +11,7 @@ import pandas as pd
 from sklearn.ensemble import IsolationForest
 from sklearn.preprocessing import StandardScaler
 
+
 def standard_scaler(latent_arr):
     """Apply Standard Scaler to latent array."""
 
@@ -19,15 +21,13 @@ def standard_scaler(latent_arr):
 
     return latent_scaled
 
+
 def main():
     """Main function to perform iforest hyperparameter search."""
     # PArse arguments
-    parser = argparse.ArgumentParser(
-        description="iForest Hyperparameter Search"
-    )
+    parser = argparse.ArgumentParser(description="iForest Hyperparameter Search")
     parser.add_argument(
-        '--config', type=str, required=True,
-        help='Path to the .ini config file'
+        "--config", type=str, required=True, help="Path to the .ini config file"
     )
     args = parser.parse_args()
 
@@ -39,18 +39,16 @@ def main():
     config.read(args.config)
 
     # Extract paths and variables
-    bin_id = config['common']['bin']
-    latent_dir = config['directory']['latent']
-    file_name = config['file']['train']
+    bin_id = config["common"]["bin"]
+    latent_dir = config["directory"]["latent"]
+    file_name = config["file"]["train"]
 
     input_path = os.path.join(latent_dir, file_name)
 
     iforest_dir = os.path.join(latent_dir, "iforest")
     os.makedirs(iforest_dir, exist_ok=True)
 
-    output_path = os.path.join(
-        iforest_dir, f"iforest_hypersearch_{bin_id}.csv"
-    )
+    output_path = os.path.join(iforest_dir, f"iforest_hypersearch_{bin_id}.csv")
     config_backup_path = os.path.join(
         iforest_dir, f"iforest_config_backup_{bin_id}.ini"
     )
@@ -69,9 +67,7 @@ def main():
     samples_range = [64, 128, 256, 512]
     estimators_range = [100, 200, 300]
     features_range = [1.0, 0.75, 0.5]
-    param_combinations = list(
-        product(samples_range, estimators_range, features_range)
-    )
+    param_combinations = list(product(samples_range, estimators_range, features_range))
 
     results_df = pd.DataFrame(index=range(len(latent_scaled)))
 
@@ -80,11 +76,10 @@ def main():
 
     for model_number, (s, e, f) in enumerate(param_combinations):
 
-        f_pct = int(f*100)
-        col_name = f"s{s}_e{e}_f{f_pct}" # e.g., s256_e100_f100
+        f_pct = int(f * 100)
+        col_name = f"s{s}_e{e}_f{f_pct}"  # e.g., s256_e100_f100
         print(
-            f"Fit model {model_number+1} of "
-            f"{len(param_combinations)}: {col_name}"
+            f"Fit model {model_number+1} of " f"{len(param_combinations)}: {col_name}"
         )
 
         iforest = IsolationForest(
@@ -93,7 +88,7 @@ def main():
             max_features=f,
             contamination=0.01,
             n_jobs=-1,
-            random_state=42
+            random_state=42,
         )
 
         # Fit and predict
@@ -104,13 +99,14 @@ def main():
         results_df[col_name] = (preds == -1).astype(int)
 
     # 6. Save Results and Backup Config
-    results_df['consensus_score'] = results_df.sum(axis=1)
+    results_df["consensus_score"] = results_df.sum(axis=1)
     results_df.to_csv(output_path, index=False)
 
     # Provenance: Copy the config file used to the results directory
     shutil.copy(args.config, config_backup_path)
 
     print(f"Success! Results and config backup saved in: {latent_dir}")
+
 
 if __name__ == "__main__":
     main()
