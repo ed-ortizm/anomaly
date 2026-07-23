@@ -44,3 +44,27 @@ GALAXY_LINES_NM_NAMES = {
     "SII": {"name": "SII", "line_wave": 673},
     # 'SII': 671.6
 }
+
+SDSS_NEBULAR_LINES_FLUX_NAMES = [
+    "oii_3726_flux",
+    "oii_3729_flux",
+    "h_beta_flux",
+    "oiii_4959_flux",
+    "oiii_5007_flux",
+    "oiii_flux",
+    "h_alpha_flux",
+    "nii_6548_flux",
+    "nii_6584_flux",
+    "sii_6717_flux",
+    "sii_6731_flux",
+]
+
+SDSS_NEBULAR_LINES_RATIOS_NAMES = [
+    "balmer_decrement",
+    "nii_to_halpha",
+    "oiii_to_hbeta",
+    "oiii_to_oii",
+    "sii_to_halpha",
+    "sii_density_ratio",
+    "o3n2_index",
+]
